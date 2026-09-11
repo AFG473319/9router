@@ -1266,9 +1266,17 @@ export default function ProviderDetailPage() {
             (m) => !addedFullModels.has(`${providerStorageAlias}/${m.id}`) && !hardcodedIds.has(m.id)
           );
           if (notAdded.length === 0) return null;
+          // Only fetcher types that actually filter to $0 models may claim "free"
+          // here; generic catalogs (orcarouter, tokenrouter, venice, …) are paid.
+          const suggestedType = providerInfo?.modelsFetcher?.type;
+          const suggestedLabel = suggestedType === "openrouter-free"
+            ? "Suggested free models (≥200k context):"
+            : (suggestedType === "opencode-free" || suggestedType === "mimo-free")
+              ? "Suggested free models:"
+              : "Suggested models:";
           return (
             <div className="w-full mt-2">
-              <p className="text-xs text-text-muted mb-2">Suggested free models (≥200k context):</p>
+              <p className="text-xs text-text-muted mb-2">{suggestedLabel}</p>
               <div className="flex flex-wrap gap-2">
                 {notAdded.map((m) => (
                   <button
@@ -1277,7 +1285,7 @@ export default function ProviderDetailPage() {
                       await handleAddCustomModel(m.id, "llm", providerStorageAlias);
                     }}
                     className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-black/10 dark:border-white/10 text-xs text-text-muted hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-colors"
-                    title={`${m.name} · ${(m.contextLength / 1000).toFixed(0)}k ctx`}
+                    title={m.contextLength ? `${m.name} · ${(m.contextLength / 1000).toFixed(0)}k ctx` : m.name}
                   >
                     <span className="material-symbols-outlined text-[13px]">add</span>
                     {m.id.split("/").pop()}
