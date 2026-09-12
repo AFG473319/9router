@@ -54,13 +54,31 @@ const normalizeContextWindow = (value, model) => {
   return getCapabilitiesForModel(provider, modelId).contextWindow;
 };
 
-// Accepts "provider/model-id" strings or { model, contextWindow } entries.
+// Fill each model's specs from 9Router's capability tables, letting explicit
+// values win. Grok exposes context_window / max_completion_tokens natively;
+// vision/reasoning ride along in the section description.
+const resolveModelSpec = (id, explicit = {}) => {
+  const slash = id.indexOf("/");
+  const provider = slash > 0 ? id.slice(0, slash) : null;
+  const modelId = slash > 0 ? id.slice(slash + 1) : id;
+  const caps = getCapabilitiesForModel(provider, modelId) || {};
+  const pick = (value, fallback) =>
+    value === undefined || value === null || value === "" ? fallback : value;
+  return {
+    contextWindow: normalizeContextWindow(explicit.contextWindow, id),
+    maxOutput: Math.floor(Number(pick(explicit.maxOutput, caps.maxOutput))) || undefined,
+    vision: Boolean(pick(explicit.vision, caps.vision)),
+    reasoning: Boolean(pick(explicit.reasoning, caps.reasoning)),
+  };
+};
+
+// Accepts "provider/model-id" strings or { model, ...specs } entries.
 const normalizeModelEntry = (entry) => {
   const id = typeof entry === "string" ? entry.trim() : entry?.model?.trim();
   if (!id) return null;
   return {
     model: id,
-    contextWindow: normalizeContextWindow(typeof entry === "string" ? undefined : entry?.contextWindow, id),
+    ...resolveModelSpec(id, typeof entry === "string" ? {} : entry),
   };
 };
 
@@ -83,7 +101,7 @@ const normalizeSubagentModels = (value) => {
     if (!model) continue; // blank means inherit the main model
     result[type] = {
       model,
-      contextWindow: normalizeContextWindow(entry?.contextWindow, model),
+      ...resolveModelSpec(model, typeof entry === "string" ? {} : entry),
     };
   }
   return result;

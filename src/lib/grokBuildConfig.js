@@ -94,6 +94,7 @@ function parseModelSection(toml, slot) {
   const match = toml.match(sectionRegExp(`model.${slot}`));
   if (!match) return null;
   const contextWindow = getSectionNumber(toml, `model.${slot}`, "context_window");
+  const maxCompletionTokens = getSectionNumber(toml, `model.${slot}`, "max_completion_tokens");
   return {
     slot,
     model: getSectionField(toml, `model.${slot}`, "model"),
@@ -102,21 +103,40 @@ function parseModelSection(toml, slot) {
     api_key: getSectionField(toml, `model.${slot}`, "api_key"),
     api_backend: getSectionField(toml, `model.${slot}`, "api_backend"),
     context_window: Number.isFinite(contextWindow) && contextWindow > 0 ? contextWindow : null,
+    max_completion_tokens:
+      Number.isFinite(maxCompletionTokens) && maxCompletionTokens > 0 ? maxCompletionTokens : null,
   };
 }
 
-function buildModelSection({ slot, model, baseUrl, apiKey, contextWindow }) {
+const fmtTokens = (n) =>
+  n % 1000 === 0 ? `${Math.round(n / 1000)}K` : n.toLocaleString("en-US");
+
+// Grok has no native fields for vision/reasoning; surface them in the
+// description (which doubles as the ownership marker — keep the marker first).
+function buildDescription({ contextWindow, maxOutput, vision, reasoning }) {
+  const parts = [];
+  if (vision) parts.push("vision");
+  if (reasoning) parts.push("reasoning");
+  if (Number.isFinite(contextWindow) && contextWindow > 0) parts.push(`${fmtTokens(contextWindow)} context`);
+  if (Number.isFinite(maxOutput) && maxOutput > 0) parts.push(`${fmtTokens(maxOutput)} max output`);
+  return parts.length > 0 ? `${GROK_OWNED_MARKER} · ${parts.join(" · ")}` : GROK_OWNED_MARKER;
+}
+
+function buildModelSection({ slot, model, baseUrl, apiKey, contextWindow, maxOutput, vision, reasoning }) {
   const lines = [
     `[model.${slot}]`,
     `model = ${tomlString(model)}`,
     `base_url = ${tomlString(baseUrl)}`,
     `name = ${tomlString(model)}`,
-    `description = ${tomlString(GROK_OWNED_MARKER)}`,
+    `description = ${tomlString(buildDescription({ contextWindow, maxOutput, vision, reasoning }))}`,
     `api_backend = "chat_completions"`,
   ];
   if (apiKey) lines.push(`api_key = ${tomlString(apiKey)}`);
   if (Number.isFinite(contextWindow) && contextWindow > 0) {
     lines.push(`context_window = ${Math.floor(contextWindow)}`);
+  }
+  if (Number.isFinite(maxOutput) && maxOutput > 0) {
+    lines.push(`max_completion_tokens = ${Math.floor(maxOutput)}`);
   }
   return `${lines.join("\n")}\n`;
 }
@@ -241,7 +261,7 @@ export function applyGrokBuildConfig(
     entries.push({
       slot,
       model: id,
-      contextWindow: typeof entry === "string" ? undefined : entry?.contextWindow,
+      ...(typeof entry === "object" ? entry : {}),
     });
   }
   if (entries.length === 0) return toml;
@@ -253,7 +273,11 @@ export function applyGrokBuildConfig(
     const selected = subagentModels?.[type];
     const id = typeof selected === "string" ? selected : selected?.model;
     if (id) {
-      subagentEntries.push({ type, model: id, contextWindow: typeof selected === "string" ? undefined : selected?.contextWindow });
+      subagentEntries.push({
+        type,
+        model: id,
+        ...(typeof selected === "object" ? selected : {}),
+      });
     } else if (subagentModels && typeof subagentModels === "object") {
       // blank override => inherit / restore previous mapping
       next = restorePreviousSubagent(next, type);
@@ -289,13 +313,7 @@ export function applyGrokBuildConfig(
     const slot = sub.slot || entries.find((e) => e.model === sub.model)?.slot;
     next = rememberPreviousSubagent(next, sub.type);
     if (sub.slot) {
-      next = upsertModelSection(next, {
-        slot: sub.slot,
-        model: sub.model,
-        contextWindow: sub.contextWindow,
-        baseUrl,
-        apiKey,
-      });
+      next = upsertModelSection(next, { ...sub, baseUrl, apiKey });
     }
     next = setSectionField(next, SUBAGENT_MODELS_SECTION, sub.type, slot);
   }

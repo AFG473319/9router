@@ -76,7 +76,22 @@ export default function GrokBuildToolCard({
   tailscaleUrl,
 }) {
   const { getCaps } = useModelCaps();
-  const getContextWindow = (model) => getCaps(model)?.contextWindow || null;
+  const getCapsFor = (model) => getCaps(model) || null;
+  const getContextWindow = (model) => getCapsFor(model)?.contextWindow || null;
+  const fmtTokens = (n) =>
+    n % 1000 === 0 ? `${Math.round(n / 1000)}K` : n.toLocaleString("en-US");
+  const describeModel = (model) => {
+    const caps = getCapsFor(model);
+    if (!caps) return "Routed via 9Router gateway";
+    const parts = [];
+    if (caps.vision) parts.push("vision");
+    if (caps.reasoning) parts.push("reasoning");
+    if (caps.contextWindow) parts.push(`${fmtTokens(caps.contextWindow)} context`);
+    if (caps.maxOutput) parts.push(`${fmtTokens(caps.maxOutput)} max output`);
+    return parts.length > 0
+      ? `Routed via 9Router gateway · ${parts.join(" · ")}`
+      : "Routed via 9Router gateway";
+  };
   const configuredModels = initialStatus?.settings?.models || [];
   const initialModel = configuredModels[0]?.model
     || initialStatus?.settings?.model?.model
@@ -186,7 +201,13 @@ export default function GrokBuildToolCard({
         .map((model) => model?.trim())
         .filter(Boolean)
         .filter((model, index, list) => list.indexOf(model) === index)
-        .map((model) => ({ model, contextWindow: getContextWindow(model) }));
+        .map((model) => ({
+          model,
+          contextWindow: getContextWindow(model),
+          maxOutput: getCapsFor(model)?.maxOutput || null,
+          vision: getCapsFor(model)?.vision || false,
+          reasoning: getCapsFor(model)?.reasoning || false,
+        }));
 
       const res = await fetch(ENDPOINT, {
         method: "POST",
@@ -264,8 +285,21 @@ export default function GrokBuildToolCard({
     const defaultModel = allModels[0] || "provider/model-id";
     const modelSlot = (model) => slotForModel(model);
 
-    const modelSection = (model) =>
-      `[model.${modelSlot(model)}]\nmodel = "${model}"\nbase_url = "${baseUrl}"\nname = "${model}"\ndescription = "Routed via 9Router gateway"\napi_backend = "chat_completions"\napi_key = "${keyToUse}"\ncontext_window = ${getContextWindow(model) || 200000}`;
+    const modelSection = (model) => {
+      const caps = getCapsFor(model);
+      const lines = [
+        `[model.${modelSlot(model)}]`,
+        `model = "${model}"`,
+        `base_url = "${baseUrl}"`,
+        `name = "${model}"`,
+        `description = "${describeModel(model)}"`,
+        `api_backend = "chat_completions"`,
+        `api_key = "${keyToUse}"`,
+      ];
+      if (caps?.contextWindow) lines.push(`context_window = ${caps.contextWindow}`);
+      if (caps?.maxOutput) lines.push(`max_completion_tokens = ${caps.maxOutput}`);
+      return lines.join("\n");
+    };
 
     const blocks = [`[models]\ndefault = "${modelSlot(defaultModel)}"`];
     allModels.forEach((model) => blocks.push(modelSection(model)));
@@ -355,6 +389,7 @@ export default function GrokBuildToolCard({
                       {configuredModel.base_url} · {configuredModel.model}
                       {grokStatus?.settings?.models?.length > 1 ? ` · ${grokStatus.settings.models.length} models` : ""}
                       {configuredModel.context_window ? ` · ${(configuredModel.context_window / 1000).toLocaleString()}K ctx` : ""}
+                      {configuredModel.max_completion_tokens ? ` · ${fmtTokens(configuredModel.max_completion_tokens)} out` : ""}
                     </span>
                   </div>
                 )}
