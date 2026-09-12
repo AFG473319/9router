@@ -1,9 +1,9 @@
 {
-  "name": "9router",
+  "name": "afrouter",
   "version": "0.5.75",
-  "description": "9Router CLI - Start and manage 9Router server",
+  "description": "AFRouter CLI - Start and manage AFRouter server",
   "bin": {
-    "9router": "./cli.js"
+    "afrouter": "./cli.js"
   },
   "files": [
     "cli.js",
