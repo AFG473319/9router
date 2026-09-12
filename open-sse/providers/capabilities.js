@@ -253,7 +253,6 @@ export const PROVIDER_CAPABILITIES = {
     "laguna-s-2.1":  { reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 32000 },
     "laguna-xs-2.1": { reasoning: true, thinkingFormat: "openai", contextWindow: 200000, maxOutput: 32000 },
   },
-<<<<<<< HEAD
   // Nous Portal — per-model values mirror the gateway's public /v1/models
   // (context_length, top_provider.max_completion_tokens, architecture
   // .input_modalities, reasoning.mandatory; fetched 2026-09-06). The gateway
