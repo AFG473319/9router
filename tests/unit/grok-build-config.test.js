@@ -30,8 +30,8 @@ enabled = true
 `;
 
 const MODELS = [
-  { model: "cx/gpt-5.6-sol", contextWindow: 400000 },
-  { model: "cc/claude-sonnet-5", contextWindow: 1000000 },
+  { model: "cx/gpt-5.6-sol", contextWindow: 400000, maxOutput: 128000, vision: true, reasoning: true },
+  { model: "cc/claude-sonnet-5", contextWindow: 1000000, maxOutput: 128000 },
 ];
 
 const APPLY_INPUT = {
@@ -64,7 +64,12 @@ describe("grokBuildConfig", () => {
       name: "cx/gpt-5.6-sol",
       base_url: "http://127.0.0.1:20128/v1",
       context_window: 400000,
+      max_completion_tokens: 128000,
     });
+    expect(result).toContain("max_completion_tokens = 128000");
+    expect(result).toContain(
+      'description = "Routed via 9Router gateway · vision · reasoning · 400K context · 128K max output"',
+    );
     expect(parsed.models).toHaveLength(2);
     expect(parsed.models[1]).toMatchObject({
       slot: "cc-claude-sonnet-5",
@@ -248,7 +253,10 @@ api_key = "sk_9router"
       subagentModels: {},
     });
     expect(result).toContain("[model.unknown-model]");
-    expect(result).not.toMatch(/context_window/);
-    expect(parseGrokBuildConfig(result).model.context_window).toBeNull();
+    expect(result).not.toMatch(/context_window|max_completion_tokens/);
+    expect(result).toContain(`description = "Routed via 9Router gateway"`);
+    const parsed = parseGrokBuildConfig(result);
+    expect(parsed.model.context_window).toBeNull();
+    expect(parsed.model.max_completion_tokens).toBeNull();
   });
 });
