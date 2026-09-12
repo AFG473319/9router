@@ -341,12 +341,59 @@ function ensureArrayItems(obj) {
   for (const v of Object.values(obj)) if (v && typeof v === "object") ensureArrayItems(v);
 }
 
+// Expand shorthand string schemas into real Schema objects.
+//
+// JSON Schema requires every subschema to be an object, but agent and MCP tool
+// definitions routinely use the shorthand `{ value: "object" }` for
+// `{ value: { type: "object" } }`. Gemini's proto has no union for this and
+// rejects the whole request:
+//   Invalid value at 'tools[0].function_declarations[N].parameters
+//   .properties[M].value' (...Schema), "object"
+//
+// Every other pass here recurses only into `typeof x === "object"`, so a string
+// subschema is invisible to them — this must run first, and must rewrite the
+// parent's slot rather than the (primitive, unmodifiable) value itself.
+const SCHEMA_SLOTS = ["items", "additionalItems", "contains", "if", "then", "else", "not", "propertyNames", "unevaluatedItems", "contentSchema"];
+const SCHEMA_MAPS = ["properties", "patternProperties", "$defs", "definitions", "dependentSchemas"];
+
+function expandStringSchemas(obj) {
+  if (!obj || typeof obj !== "object") return;
+
+  const expand = (value) => (typeof value === "string" ? { type: value } : value);
+
+  for (const slot of SCHEMA_SLOTS) {
+    if (typeof obj[slot] === "string") obj[slot] = expand(obj[slot]);
+  }
+
+  for (const mapKey of SCHEMA_MAPS) {
+    const map = obj[mapKey];
+    if (!map || typeof map !== "object" || Array.isArray(map)) continue;
+    for (const [key, value] of Object.entries(map)) {
+      if (typeof value === "string") map[key] = expand(value);
+    }
+  }
+
+  // `additionalProperties: false` is a valid boolean and is stripped later;
+  // only a string form is shorthand for a schema.
+  if (typeof obj.additionalProperties === "string") {
+    obj.additionalProperties = expand(obj.additionalProperties);
+  }
+
+  for (const value of Object.values(obj)) {
+    if (value && typeof value === "object") expandStringSchemas(value);
+  }
+}
+
 // Clean JSON Schema for Antigravity API compatibility - removes unsupported keywords recursively
 export function cleanJSONSchemaForAntigravity(schema) {
   if (!schema || typeof schema !== "object") return schema;
 
   // Mutate directly (schema is only used once per request)
   let cleaned = schema;
+
+  // Phase 0: Expand shorthand string subschemas — must run before any pass that
+  // recurses on `typeof x === "object"`, which would otherwise skip them entirely.
+  expandStringSchemas(cleaned);
 
   // Phase 1: Convert and prepare
   convertConstToEnum(cleaned);
