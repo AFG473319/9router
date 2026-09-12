@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   applyGrokBuildConfig,
-  getGrokSubagentSlot,
+  grokSlotForModel,
   parseGrokBuildConfig,
   resetGrokBuildConfig,
 } from "../../src/lib/grokBuildConfig.js";
@@ -29,42 +29,52 @@ url = "https://example.com/mcp"
 enabled = true
 `;
 
+const MODELS = [
+  { model: "cx/gpt-5.6-sol", contextWindow: 400000 },
+  { model: "cc/claude-sonnet-5", contextWindow: 1000000 },
+];
+
 const APPLY_INPUT = {
   baseUrl: "http://127.0.0.1:20128/v1",
   apiKey: "sk-test",
-  model: "cx/gpt-5.6-sol",
-  contextWindow: 400000,
+  models: MODELS,
   subagentModels: {
-    "general-purpose": { model: "cc/claude-sonnet-5", contextWindow: 1000000 },
     explore: { model: "gemini/gemini-3-flash", contextWindow: 1048576 },
   },
 };
 
+describe("grokSlotForModel", () => {
+  it("derives bare-key slots from model ids and resolves collisions", () => {
+    expect(grokSlotForModel("cx/gpt-5.6-sol")).toBe("cx-gpt-5-6-sol");
+    expect(grokSlotForModel("openai/o3-mini (preview)")).toBe("openai-o3-mini-preview");
+    const used = new Set(["gpt-5"]);
+    expect(grokSlotForModel("gpt.5", used)).toBe("gpt-5-2");
+  });
+});
+
 describe("grokBuildConfig", () => {
-  it("creates independent main and per-type subagent model slots", () => {
+  it("writes one slot per model, named after the original model id", () => {
     const result = applyGrokBuildConfig(BASE_CONFIG, APPLY_INPUT);
     const parsed = parseGrokBuildConfig(result);
 
-    expect(parsed.default).toBe("9router");
+    expect(parsed.default).toBe("cx-gpt-5-6-sol");
     expect(parsed.model).toMatchObject({
+      slot: "cx-gpt-5-6-sol",
       model: "cx/gpt-5.6-sol",
+      name: "cx/gpt-5.6-sol",
       base_url: "http://127.0.0.1:20128/v1",
       context_window: 400000,
     });
-    expect(parsed.subagentMappings).toMatchObject({
-      "general-purpose": "9router-general-purpose",
-      explore: "9router-explore",
-      plan: "grok-4.5",
-    });
-    expect(parsed.subagentModels["general-purpose"]).toMatchObject({
+    expect(parsed.models).toHaveLength(2);
+    expect(parsed.models[1]).toMatchObject({
+      slot: "cc-claude-sonnet-5",
       model: "cc/claude-sonnet-5",
+      name: "cc/claude-sonnet-5",
       context_window: 1000000,
     });
-    expect(parsed.subagentModels.explore).toMatchObject({
-      model: "gemini/gemini-3-flash",
-      context_window: 1048576,
-    });
-    expect(parsed.subagentModels.plan).toBeNull();
+    expect(result).toContain("[model.cx-gpt-5-6-sol]");
+    expect(result).toContain("[model.cc-claude-sonnet-5]");
+    expect(result).not.toContain("[model.9router]");
   });
 
   it("preserves unrelated config sections", () => {
@@ -76,47 +86,74 @@ describe("grokBuildConfig", () => {
     expect(result).toContain("url = \"https://example.com/mcp\"");
   });
 
-  it("is idempotent and updates owned slots without duplicate sections", () => {
+  it("is idempotent and replaces previously owned slots not in the new set", () => {
     let result = applyGrokBuildConfig(BASE_CONFIG, APPLY_INPUT);
     result = applyGrokBuildConfig(result, {
       ...APPLY_INPUT,
-      model: "cc/claude-opus-4.8",
-      contextWindow: 1000000,
+      models: [...MODELS, { model: "gemini/gemini-3-flash", contextWindow: 1048576 }],
       subagentModels: {
-        ...APPLY_INPUT.subagentModels,
         explore: { model: "mimo/mimo", contextWindow: 262144 },
       },
     });
 
-    expect(result.match(/^\[model\.9router\]$/gm)).toHaveLength(1);
-    expect(result.match(/^\[model\.9router-general-purpose\]$/gm)).toHaveLength(1);
-    expect(result.match(/^\[model\.9router-explore\]$/gm)).toHaveLength(1);
+    expect(result.match(/^\[model\.cx-gpt-5-6-sol\]$/gm)).toHaveLength(1);
+    expect(result.match(/^\[model\.cc-claude-sonnet-5\]$/gm)).toHaveLength(1);
+    expect(result).toContain("[model.gemini-gemini-3-flash]");
     expect(result.match(/^# 9router-prev-subagent-explore/gm)).toHaveLength(1);
-    expect(parseGrokBuildConfig(result).model).toMatchObject({
-      model: "cc/claude-opus-4.8",
-      context_window: 1000000,
+    expect(parseGrokBuildConfig(result).models).toHaveLength(3);
+
+    // Re-apply with a different set: stale owned slots disappear.
+    result = applyGrokBuildConfig(result, {
+      ...APPLY_INPUT,
+      models: [{ model: "mimo/mimo", contextWindow: 262144 }],
+      subagentModels: {},
     });
-    expect(parseGrokBuildConfig(result).subagentModels.explore).toMatchObject({
-      model: "mimo/mimo",
-      context_window: 262144,
+    expect(result).not.toContain("[model.cx-gpt-5-6-sol]");
+    expect(result).not.toContain("[model.cc-claude-sonnet-5]");
+    expect(result).not.toContain("[model.gemini-gemini-3-flash]");
+    expect(result).toContain("[model.mimo-mimo]");
+    expect(parseGrokBuildConfig(result).default).toBe("mimo-mimo");
+  });
+
+  it("never touches user-authored model sections", () => {
+    const config = `${BASE_CONFIG}\n[model.my-own]\nmodel = "grok-4.5"\nbase_url = "https://example.com"\nname = "Mine"\n`;
+    let result = applyGrokBuildConfig(config, APPLY_INPUT);
+    expect(result).toContain("[model.my-own]");
+    result = resetGrokBuildConfig(result);
+    expect(result).toContain("[model.my-own]");
+  });
+
+  it("subagent overrides reuse a main slot when the model matches, else get their own", () => {
+    const result = applyGrokBuildConfig(BASE_CONFIG, {
+      ...APPLY_INPUT,
+      subagentModels: {
+        "general-purpose": { model: "cx/gpt-5.6-sol", contextWindow: 400000 },
+        explore: { model: "gemini/gemini-3-flash", contextWindow: 1048576 },
+      },
     });
+    const parsed = parseGrokBuildConfig(result);
+
+    expect(parsed.subagentMappings["general-purpose"]).toBe("cx-gpt-5-6-sol");
+    expect(result.match(/^\[model\.cx-gpt-5-6-sol\]$/gm)).toHaveLength(1);
+    expect(parsed.subagentMappings.explore).toBe("gemini-gemini-3-flash");
+    expect(parsed.subagentModels.explore).toMatchObject({
+      model: "gemini/gemini-3-flash",
+      context_window: 1048576,
+    });
+    expect(parsed.subagentModels.plan).toBeNull();
   });
 
   it("blank override restores previous subagent mapping and removes owned slot", () => {
     let result = applyGrokBuildConfig(BASE_CONFIG, APPLY_INPUT);
     result = applyGrokBuildConfig(result, {
       ...APPLY_INPUT,
-      subagentModels: {
-        "general-purpose": APPLY_INPUT.subagentModels["general-purpose"],
-        // explore omitted => inherit / restore previous
-      },
+      subagentModels: {}, // explore blank => inherit / restore previous
     });
 
     const parsed = parseGrokBuildConfig(result);
     expect(parsed.subagentMappings.explore).toBe("grok-build");
     expect(parsed.subagentModels.explore).toBeNull();
-    expect(result).not.toContain("[model.9router-explore]");
-    expect(parsed.subagentMappings["general-purpose"]).toBe("9router-general-purpose");
+    expect(result).not.toContain("[model.gemini-gemini-3-flash]");
   });
 
   it("reset restores previous default and all previous subagent mappings", () => {
@@ -125,13 +162,14 @@ describe("grokBuildConfig", () => {
     const parsed = parseGrokBuildConfig(reset);
 
     expect(parsed.default).toBe("grok-4.5");
+    expect(parsed.models).toHaveLength(0);
     expect(parsed.model).toBeNull();
     expect(parsed.subagentMappings).toEqual({
       "general-purpose": "grok-4.5",
       explore: "grok-build",
       plan: "grok-4.5",
     });
-    expect(reset).not.toContain("[model.9router-");
+    expect(reset).not.toContain("Routed via 9Router gateway");
     expect(reset).not.toContain("9router-prev-");
     expect(reset).toContain("[mcp_servers.example]");
   });
@@ -146,31 +184,71 @@ describe("grokBuildConfig", () => {
     });
     const reset = resetGrokBuildConfig(applied);
 
-    expect(parseGrokBuildConfig(applied).subagentMappings.plan).toBe("9router-plan");
+    expect(parseGrokBuildConfig(applied).subagentMappings.plan).toBe("cc-claude-sonnet-5");
     expect(parseGrokBuildConfig(reset).subagentMappings.plan).toBeNull();
     expect(reset).not.toContain("[subagents.models]");
     expect(reset).toContain("[mcp_servers.x]");
   });
 
-  it("legacy callers without subagentModels leave existing overrides untouched", () => {
+  it("migrates legacy 9router slots written by older versions", () => {
+    const legacy = `${BASE_CONFIG}
+# 9router-prev-default = "grok-4.5"
+
+[model.9router]
+model = "cx/gpt-5.6-sol"
+base_url = "http://127.0.0.1:20128/v1"
+name = "9Router"
+description = "Routed via 9Router gateway"
+api_backend = "chat_completions"
+api_key = "sk_9router"
+context_window = 400000
+
+[subagents.models]
+general-purpose = "9router-general-purpose"
+
+[model.9router-general-purpose]
+model = "cc/claude-sonnet-5"
+base_url = "http://127.0.0.1:20128/v1"
+name = "9Router general-purpose"
+description = "Routed via 9Router gateway"
+api_backend = "chat_completions"
+api_key = "sk_9router"
+`;
+
+    const applied = applyGrokBuildConfig(legacy, APPLY_INPUT);
+    expect(applied).not.toContain("[model.9router]");
+    expect(applied).toContain("[model.cx-gpt-5-6-sol]");
+
+    const reset = resetGrokBuildConfig(applied);
+    expect(reset).not.toContain("Routed via 9Router gateway");
+    expect(parseGrokBuildConfig(reset).default).toBe("grok-4.5");
+    expect(parseGrokBuildConfig(reset).subagentMappings["general-purpose"]).toBe("grok-4.5");
+  });
+
+  it("legacy single-model callers without subagentModels leave overrides untouched", () => {
     const applied = applyGrokBuildConfig(BASE_CONFIG, APPLY_INPUT);
-    const updatedMainOnly = applyGrokBuildConfig(applied, {
+    const updated = applyGrokBuildConfig(applied, {
       baseUrl: APPLY_INPUT.baseUrl,
       apiKey: APPLY_INPUT.apiKey,
       model: "gemini/gemini-3.1-pro",
       contextWindow: 1048576,
     });
 
-    const parsed = parseGrokBuildConfig(updatedMainOnly);
+    const parsed = parseGrokBuildConfig(updated);
+    expect(parsed.models).toHaveLength(1);
     expect(parsed.model.model).toBe("gemini/gemini-3.1-pro");
-    expect(parsed.subagentMappings.explore).toBe("9router-explore");
+    expect(parsed.subagentMappings.explore).toBe("gemini-gemini-3-flash");
     expect(parsed.subagentModels.explore.model).toBe("gemini/gemini-3-flash");
   });
 
-  it("returns stable slot names only for supported subagent types", () => {
-    expect(getGrokSubagentSlot("general-purpose")).toBe("9router-general-purpose");
-    expect(getGrokSubagentSlot("explore")).toBe("9router-explore");
-    expect(getGrokSubagentSlot("plan")).toBe("9router-plan");
-    expect(getGrokSubagentSlot("unknown")).toBeNull();
+  it("omits context_window when no spec is known", () => {
+    const result = applyGrokBuildConfig(BASE_CONFIG, {
+      ...APPLY_INPUT,
+      models: [{ model: "unknown/model" }],
+      subagentModels: {},
+    });
+    expect(result).toContain("[model.unknown-model]");
+    expect(result).not.toMatch(/context_window/);
+    expect(parseGrokBuildConfig(result).model.context_window).toBeNull();
   });
 });

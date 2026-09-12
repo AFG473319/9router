@@ -10,7 +10,8 @@ import ApiKeySelect from "./ApiKeySelect";
 import { matchKnownEndpoint } from "./cliEndpointMatch";
 
 const ENDPOINT = "/api/cli-tools/grok-build-settings";
-const MODEL_SLOT = "9router";
+const slotForModel = (model) =>
+  String(model).replace(/[^A-Za-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "model";
 const SUBAGENT_TYPES = [
   { id: "general-purpose", label: "General-purpose", help: "Implementation, testing, and full-capability delegated tasks" },
   { id: "explore", label: "Explore", help: "Read-only codebase research and investigation" },
@@ -76,7 +77,11 @@ export default function GrokBuildToolCard({
 }) {
   const { getCaps } = useModelCaps();
   const getContextWindow = (model) => getCaps(model)?.contextWindow || null;
-  const initialModel = initialStatus?.settings?.model?.model || "";
+  const configuredModels = initialStatus?.settings?.models || [];
+  const initialModel = configuredModels[0]?.model
+    || initialStatus?.settings?.model?.model
+    || "";
+  const initialExtraModels = configuredModels.slice(1).map((entry) => entry.model);
   const initialSubagents = Object.fromEntries(
     SUBAGENT_TYPES
       .map((type) => [type.id, initialStatus?.settings?.subagentModels?.[type.id]?.model])
@@ -89,6 +94,7 @@ export default function GrokBuildToolCard({
   const [message, setMessage] = useState(null);
   const [selectedApiKey, setSelectedApiKey] = useState(apiKeys?.[0]?.key || "");
   const [selectedModel, setSelectedModel] = useState(initialModel);
+  const [extraModels, setExtraModels] = useState(initialExtraModels);
   const [subagentModels, setSubagentModels] = useState(initialSubagents);
   const [modelTarget, setModelTarget] = useState(null); // "main" or subagent type
   const [modelAliases, setModelAliases] = useState({});
@@ -107,13 +113,16 @@ export default function GrokBuildToolCard({
         : "other";
 
   const hydrateForm = useCallback((status) => {
-    const mainModel = status?.settings?.model?.model || "";
+    const configuredModels = status?.settings?.models || [];
+    const mainModel = configuredModels[0]?.model || status?.settings?.model?.model || "";
+    const extras = configuredModels.slice(1).map((entry) => entry.model);
     const configuredSubagents = Object.fromEntries(
       SUBAGENT_TYPES
         .map((type) => [type.id, status?.settings?.subagentModels?.[type.id]?.model])
         .filter(([, model]) => Boolean(model)),
     );
     setSelectedModel(mainModel);
+    setExtraModels(extras);
     setSubagentModels(configuredSubagents);
   }, []);
 
@@ -173,14 +182,19 @@ export default function GrokBuildToolCard({
         if (model) mappedSubagents[type.id] = { model, contextWindow: getContextWindow(model) };
       }
 
+      const allModels = [selectedModel, ...extraModels]
+        .map((model) => model?.trim())
+        .filter(Boolean)
+        .filter((model, index, list) => list.indexOf(model) === index)
+        .map((model) => ({ model, contextWindow: getContextWindow(model) }));
+
       const res = await fetch(ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           baseUrl: getEffectiveBaseUrl(),
           apiKey: keyToUse,
-          model: selectedModel,
-          contextWindow: getContextWindow(selectedModel),
+          models: allModels,
           subagentModels: mappedSubagents,
         }),
       });
@@ -188,7 +202,7 @@ export default function GrokBuildToolCard({
       if (res.ok) {
         // Remember the endpoint so it stays selectable next time
         rememberEndpoint(getEffectiveBaseUrl(), { tunnelPublicUrl, tailscaleUrl });
-        setMessage({ type: "success", text: "Main and subagent models applied successfully!" });
+        setMessage({ type: "success", text: `${allModels.length} model${allModels.length === 1 ? "" : "s"} applied — switch between them in Grok Build's model picker.` });
         checkStatus();
       } else {
         setMessage({ type: "error", text: data.error || "Failed to apply settings" });
@@ -209,6 +223,7 @@ export default function GrokBuildToolCard({
       if (res.ok) {
         setMessage({ type: "success", text: "Settings reset successfully!" });
         setSelectedModel("");
+        setExtraModels([]);
         setSubagentModels({});
         checkStatus();
       } else {
@@ -224,6 +239,14 @@ export default function GrokBuildToolCard({
   const handleModelSelect = (model) => {
     if (modelTarget === "main") {
       setSelectedModel(model.value);
+      // Avoid listing the same model twice
+      setExtraModels((current) => current.filter((m) => m !== model.value));
+    } else if (modelTarget === "add-model") {
+      if (model.value !== selectedModel) {
+        setExtraModels((current) =>
+          current.includes(model.value) ? current : [...current, model.value],
+        );
+      }
     } else if (modelTarget) {
       setSubagentModels((current) => ({ ...current, [modelTarget]: model.value }));
     }
@@ -234,18 +257,25 @@ export default function GrokBuildToolCard({
     const keyToUse = selectedApiKey?.trim()
       || (!cloudEnabled ? "sk_9router" : "<API_KEY_FROM_DASHBOARD>");
     const baseUrl = getEffectiveBaseUrl();
-    const mainModel = selectedModel || "provider/model-id";
-    const blocks = [
-      `[models]\ndefault = "${MODEL_SLOT}"`,
-      `[model.${MODEL_SLOT}]\nmodel = "${mainModel}"\nbase_url = "${baseUrl}"\nname = "9Router"\ndescription = "Routed via 9Router gateway"\napi_backend = "chat_completions"\napi_key = "${keyToUse}"\ncontext_window = ${getContextWindow(mainModel) || 200000}`,
-    ];
+    const allModels = [selectedModel, ...extraModels]
+      .map((model) => model?.trim())
+      .filter(Boolean)
+      .filter((model, index, list) => list.indexOf(model) === index);
+    const defaultModel = allModels[0] || "provider/model-id";
+    const modelSlot = (model) => slotForModel(model);
+
+    const modelSection = (model) =>
+      `[model.${modelSlot(model)}]\nmodel = "${model}"\nbase_url = "${baseUrl}"\nname = "${model}"\ndescription = "Routed via 9Router gateway"\napi_backend = "chat_completions"\napi_key = "${keyToUse}"\ncontext_window = ${getContextWindow(model) || 200000}`;
+
+    const blocks = [`[models]\ndefault = "${modelSlot(defaultModel)}"`];
+    allModels.forEach((model) => blocks.push(modelSection(model)));
+
     const mappings = [];
     for (const type of SUBAGENT_TYPES) {
       const model = subagentModels[type.id]?.trim();
       if (!model) continue;
-      const slot = `${MODEL_SLOT}-${type.id}`;
-      mappings.push(`${type.id} = "${slot}"`);
-      blocks.push(`[model.${slot}]\nmodel = "${model}"\nbase_url = "${baseUrl}"\nname = "9Router ${type.id}"\ndescription = "Routed via 9Router gateway"\napi_backend = "chat_completions"\napi_key = "${keyToUse}"\ncontext_window = ${getContextWindow(model) || 200000}`);
+      mappings.push(`${type.id} = "${modelSlot(model)}"`);
+      if (!allModels.includes(model)) blocks.push(modelSection(model));
     }
     if (mappings.length) blocks.splice(1, 0, `[subagents.models]\n${mappings.join("\n")}`);
     return [{ filename: "~/.grok/config.toml", content: `${blocks.join("\n\n")}\n` }];
@@ -321,7 +351,11 @@ export default function GrokBuildToolCard({
                   <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-[8rem_auto_1fr] sm:items-center sm:gap-2">
                     <span className="text-xs font-semibold text-text-main sm:text-right sm:text-sm">Current</span>
                     <span className="material-symbols-outlined hidden text-text-muted text-[14px] sm:inline">arrow_forward</span>
-                    <span className="min-w-0 truncate rounded bg-surface/40 px-2 py-2 text-xs text-text-muted sm:py-1.5">{configuredModel.base_url} · {configuredModel.model}{configuredModel.context_window ? ` · ${(configuredModel.context_window / 1000).toLocaleString()}K ctx` : ""}</span>
+                    <span className="min-w-0 truncate rounded bg-surface/40 px-2 py-2 text-xs text-text-muted sm:py-1.5">
+                      {configuredModel.base_url} · {configuredModel.model}
+                      {grokStatus?.settings?.models?.length > 1 ? ` · ${grokStatus.settings.models.length} models` : ""}
+                      {configuredModel.context_window ? ` · ${(configuredModel.context_window / 1000).toLocaleString()}K ctx` : ""}
+                    </span>
                   </div>
                 )}
 
@@ -332,6 +366,42 @@ export default function GrokBuildToolCard({
                 </div>
 
                 <ModelField label="Main Model" value={selectedModel} onChange={setSelectedModel} placeholder="provider/model-id" onSelect={() => setModelTarget("main")} disabled={!hasActiveProviders} />
+
+                <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-[8rem_auto_1fr] sm:items-start sm:gap-2">
+                  <div className="sm:text-right">
+                    <span className="text-xs font-semibold text-text-main sm:text-sm">More Models</span>
+                    <p className="mt-0.5 text-[10px] leading-tight text-text-muted">Also written to Grok Build so you can switch models in its picker without touching 9Router.</p>
+                  </div>
+                  <span className="material-symbols-outlined hidden text-text-muted text-[14px] sm:inline">arrow_forward</span>
+                  <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                    {extraModels.map((model) => (
+                      <span key={model} className="inline-flex max-w-full items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-xs text-text-main">
+                        <span className="truncate">{model}</span>
+                        <button
+                          type="button"
+                          onClick={() => setExtraModels((current) => current.filter((m) => m !== model))}
+                          className="p-0.5 text-text-muted hover:text-red-500 rounded transition-colors"
+                          title="Remove model"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                      </span>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setModelTarget("add-model")}
+                      disabled={!hasActiveProviders}
+                      className={`inline-flex items-center gap-1 rounded border border-dashed px-2 py-1 text-xs transition-colors ${
+                        hasActiveProviders
+                          ? "border-border text-text-muted hover:border-primary hover:text-text-main cursor-pointer"
+                          : "border-border opacity-50 cursor-not-allowed"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">add</span>
+                      Add model
+                    </button>
+                  </div>
+                </div>
 
                 <div className="my-1 border-t border-border pt-3">
                   <div className="mb-2 flex items-start gap-2">
@@ -374,10 +444,10 @@ export default function GrokBuildToolCard({
           isOpen={Boolean(modelTarget)}
           onClose={() => setModelTarget(null)}
           onSelect={handleModelSelect}
-          selectedModel={modelTarget === "main" ? selectedModel : subagentModels[modelTarget] || ""}
+          selectedModel={modelTarget === "main" ? selectedModel : modelTarget === "add-model" ? "" : subagentModels[modelTarget] || ""}
           activeProviders={activeProviders}
           modelAliases={modelAliases}
-          title={modelTarget === "main" ? "Select Main Model for Grok Build" : `Select ${SUBAGENT_TYPES.find((type) => type.id === modelTarget)?.label || "Subagent"} Model`}
+          title={modelTarget === "main" ? "Select Main Model for Grok Build" : modelTarget === "add-model" ? "Add Model for Grok Build" : `Select ${SUBAGENT_TYPES.find((type) => type.id === modelTarget)?.label || "Subagent"} Model`}
         />
       )}
 

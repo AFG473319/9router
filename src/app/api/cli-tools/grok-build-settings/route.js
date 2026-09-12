@@ -54,6 +54,25 @@ const normalizeContextWindow = (value, model) => {
   return getCapabilitiesForModel(provider, modelId).contextWindow;
 };
 
+// Accepts "provider/model-id" strings or { model, contextWindow } entries.
+const normalizeModelEntry = (entry) => {
+  const id = typeof entry === "string" ? entry.trim() : entry?.model?.trim();
+  if (!id) return null;
+  return {
+    model: id,
+    contextWindow: normalizeContextWindow(typeof entry === "string" ? undefined : entry?.contextWindow, id),
+  };
+};
+
+const normalizeModelList = (models, singleModel) => {
+  const list = (Array.isArray(models) ? models : [])
+    .map(normalizeModelEntry)
+    .filter(Boolean);
+  if (list.length > 0) return list;
+  const single = normalizeModelEntry(singleModel);
+  return single ? [single] : [];
+};
+
 const normalizeSubagentModels = (value) => {
   if (value === undefined) return undefined; // backwards-compatible callers leave current overrides untouched
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
@@ -70,7 +89,7 @@ const normalizeSubagentModels = (value) => {
   return result;
 };
 
-const has9RouterConfig = (settings) => Boolean(settings?.model?.base_url);
+const has9RouterConfig = (settings) => (settings?.models?.length || 0) > 0;
 
 export async function GET() {
   try {
@@ -98,10 +117,10 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { baseUrl, apiKey, model, contextWindow, subagentModels } = await request.json();
-    const selectedModel = typeof model === "string" ? model.trim() : "";
-    if (!baseUrl || !selectedModel) {
-      return NextResponse.json({ error: "baseUrl and model are required" }, { status: 400 });
+    const { baseUrl, apiKey, model, contextWindow, models, subagentModels } = await request.json();
+    const modelList = normalizeModelList(models, model);
+    if (!baseUrl || modelList.length === 0) {
+      return NextResponse.json({ error: "baseUrl and at least one model are required" }, { status: 400 });
     }
 
     await fs.mkdir(getGrokDir(), { recursive: true });
@@ -109,8 +128,7 @@ export async function POST(request) {
     const toml = applyGrokBuildConfig(await readConfigToml(), {
       baseUrl: normalizedBaseUrl,
       apiKey: apiKey || "sk_9router",
-      model: selectedModel,
-      contextWindow: normalizeContextWindow(contextWindow, selectedModel),
+      models: modelList,
       subagentModels: normalizeSubagentModels(subagentModels),
     });
     await fs.writeFile(getGrokConfigPath(), toml);
@@ -119,7 +137,7 @@ export async function POST(request) {
       success: true,
       message: "Grok Build settings applied successfully!",
       configPath: getGrokConfigPath(),
-      modelSlot: "9router",
+      models: modelList.map((entry) => entry.model),
     });
   } catch (error) {
     console.log("Error updating grok-build settings:", error);
