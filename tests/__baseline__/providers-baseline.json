@@ -1034,5 +1034,11 @@
     "format": "openai",
     "clientId": "hermes-cli",
     "tokenUrl": "https://portal.nousresearch.com/api/oauth/token"
+  },
+  "orcarouter": {
+    "baseUrl": "https://api.orcarouter.ai/v1/chat/completions",
+    "validateUrl": "https://api.orcarouter.ai/v1/models",
+    "thinkingFormat": "openai",
+    "format": "openai"
   }
 }
