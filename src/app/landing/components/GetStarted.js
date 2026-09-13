@@ -3,6 +3,9 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
 export default function GetStarted() {
   const { copied, copy } = useCopyToClipboard();
+  const routerBase = typeof window !== "undefined"
+    ? window.location.origin
+    : `http://localhost:${process.env.PORT || 30128}`;
 
   const handleCopy = (text) => {
     copy(text, "landing");
@@ -40,7 +43,7 @@ export default function GetStarted() {
                 <div className="flex-none w-8 h-8 rounded-full bg-[#3B82F6]/20 text-[#60A5FA] flex items-center justify-center font-bold">3</div>
                 <div>
                   <h4 className="font-bold text-lg">Route Requests</h4>
-                  <p className="text-sm text-gray-500 mt-1">Point your CLI tools to http://localhost:20128</p>
+                  <p className="text-sm text-gray-500 mt-1">Point your CLI tools to {routerBase}</p>
                 </div>
               </div>
             </div>
@@ -72,8 +75,8 @@ export default function GetStarted() {
                 
                 <div className="text-gray-400 mb-6">
                   <span className="text-[#60A5FA]">&gt;</span> Starting AFRouter...<br/>
-                  <span className="text-[#60A5FA]">&gt;</span> Server running on <span className="text-blue-400">http://localhost:20128</span><br/>
-                  <span className="text-[#60A5FA]">&gt;</span> Dashboard: <span className="text-blue-400">http://localhost:20128/dashboard</span><br/>
+                  <span className="text-[#60A5FA]">&gt;</span> Server running on <span className="text-blue-400">{routerBase}</span><br/>
+                  <span className="text-[#60A5FA]">&gt;</span> Dashboard: <span className="text-blue-400">{routerBase}/dashboard</span><br/>
                   <span className="text-green-400">&gt;</span> Ready to route! ✓
                 </div>
                 
