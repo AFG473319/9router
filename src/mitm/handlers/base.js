@@ -1,6 +1,6 @@
 const { log, err } = require("../logger");
 
-const DEFAULT_LOCAL_ROUTER = `http://localhost:${parseInt(process.env.PORT, 10) || 30128}`;
+const DEFAULT_LOCAL_ROUTER = `http://localhost:${parseInt(process.env.PORT, 10) || 20128}`;
 const ROUTER_BASE = String(process.env.MITM_ROUTER_BASE || DEFAULT_LOCAL_ROUTER)
   .trim()
   .replace(/\/+$/, "") || DEFAULT_LOCAL_ROUTER;

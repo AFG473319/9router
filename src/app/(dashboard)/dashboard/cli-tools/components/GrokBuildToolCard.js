@@ -180,7 +180,7 @@ export default function GrokBuildToolCard({
   const getEffectiveBaseUrl = () => {
     const url = customBaseUrl || (typeof window !== "undefined"
       ? window.location.origin.replace("://localhost", "://127.0.0.1")
-      : `http://127.0.0.1:${process.env.PORT || 30128}`);
+      : `http://127.0.0.1:${process.env.PORT || 20128}`);
     return url.endsWith("/v1") ? url : `${url}/v1`;
   };
 

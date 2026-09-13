@@ -5,7 +5,7 @@ export default function GetStarted() {
   const { copied, copy } = useCopyToClipboard();
   const routerBase = typeof window !== "undefined"
     ? window.location.origin
-    : `http://localhost:${process.env.PORT || 30128}`;
+    : `http://localhost:${process.env.PORT || 20128}`;
 
   const handleCopy = (text) => {
     copy(text, "landing");

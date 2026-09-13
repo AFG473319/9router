@@ -8,7 +8,7 @@ import { Card, Button, Badge, Input } from "@/shared/components";
 const getDefaultMitmRouterBase = () =>
   typeof window !== "undefined"
     ? window.location.origin.replace("://localhost", "://127.0.0.1")
-    : `http://localhost:${process.env.PORT || 30128}`;
+    : `http://localhost:${process.env.PORT || 20128}`;
 
 /**
  * Shared MITM infrastructure card — manages SSL cert + server start/stop.

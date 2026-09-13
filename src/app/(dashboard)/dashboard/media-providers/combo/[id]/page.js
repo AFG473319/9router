@@ -236,7 +236,7 @@ export default function ComboDetailPage() {
   const exampleBody = combo.kind && EXAMPLE_BODIES[combo.kind] ? EXAMPLE_BODIES[combo.kind](combo.name) : null;
   const routerBase = typeof window !== "undefined"
     ? window.location.origin
-    : `http://localhost:${process.env.PORT || 30128}`;
+    : `http://localhost:${process.env.PORT || 20128}`;
   const curlExample = examplePath
     ? `curl -X POST ${routerBase}${examplePath} \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer ${apiKey || "YOUR_KEY"}" \\\n  -d '${JSON.stringify(exampleBody)}'`
     : "";
