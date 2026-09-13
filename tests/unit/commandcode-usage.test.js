@@ -70,6 +70,12 @@ const { getCommandCodeUsage } = await import(
 const { parseQuotaData, getRemainingPercentage } = await import(
   "../../src/app/(dashboard)/dashboard/usage/components/ProviderLimits/utils.js"
 );
+const { default: commandCodeRegistry } = await import(
+  "../../open-sse/providers/registry/commandcode.js"
+);
+const { USAGE_SUPPORTED_PROVIDERS, USAGE_APIKEY_PROVIDERS } = await import(
+  "../../src/shared/constants/providers.js"
+);
 
 describe("getCommandCodeUsage", () => {
   beforeEach(() => {
@@ -117,6 +123,16 @@ describe("getCommandCodeUsage", () => {
     const out = await getCommandCodeUsage(null, null);
     expect(out.quotas).toBeUndefined();
     expect(out.message).toMatch(/API key not available/);
+  });
+
+  it("is polled by the dashboard for api-key connections", async () => {
+    // /api/usage/[connectionId] answers "Usage not available for this
+    // connection" unless the provider is in both lists, and Command Code is
+    // configured with authType "apikey".
+    expect(commandCodeRegistry.features.usage).toBe(true);
+    expect(commandCodeRegistry.features.usageApikey).toBe(true);
+    expect(USAGE_SUPPORTED_PROVIDERS).toContain("commandcode");
+    expect(USAGE_APIKEY_PROVIDERS).toContain("commandcode");
   });
 
   it("renders through the dashboard parser with the right percentages", async () => {
