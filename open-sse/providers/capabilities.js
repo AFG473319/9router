@@ -517,16 +517,29 @@ export function getCapabilitiesForModel(provider, model) {
   // Canonical exact lookup strips vendor prefix: "anthropic/claude-opus-4.7" -> "claude-opus-4.7".
   const baseModel = model.includes("/") ? model.split("/").pop() : model;
 
+  // Free-tier listings append ":free" (OpenRouter/Nous style) or "-free" to the
+  // paid id. Exact tables are keyed by the paid id, so retry them unsuffixed —
+  // but only here: pattern matching keeps the suffix so resellers whose free
+  // tier is genuinely smaller (e.g. laguna-s-2.1 free = 200K vs paid 1M) still
+  // hit their explicit free patterns.
+  const unsuffixed = (m) => (m ? m.replace(/[:-]free$/i, "") : m);
+  const unsuffixedModel = unsuffixed(model) !== model ? unsuffixed(model) : null;
+  const unsuffixedBase = unsuffixed(baseModel) !== baseModel ? unsuffixed(baseModel) : null;
+
   // 1. Provider-specific override
   if (provider) {
     const providerCaps = PROVIDER_CAPABILITIES[provider];
     if (providerCaps?.[model]) return { ...DEFAULT_CAPABILITIES, ...providerCaps[model] };
     if (providerCaps?.[baseModel]) return { ...DEFAULT_CAPABILITIES, ...providerCaps[baseModel] };
+    if (unsuffixedModel && providerCaps?.[unsuffixedModel]) return { ...DEFAULT_CAPABILITIES, ...providerCaps[unsuffixedModel] };
+    if (unsuffixedBase && providerCaps?.[unsuffixedBase]) return { ...DEFAULT_CAPABILITIES, ...providerCaps[unsuffixedBase] };
   }
 
   // 2. Canonical exact
   if (MODEL_CAPABILITIES[baseModel]) return { ...DEFAULT_CAPABILITIES, ...MODEL_CAPABILITIES[baseModel] };
   if (MODEL_CAPABILITIES[model]) return { ...DEFAULT_CAPABILITIES, ...MODEL_CAPABILITIES[model] };
+  if (unsuffixedBase && MODEL_CAPABILITIES[unsuffixedBase]) return { ...DEFAULT_CAPABILITIES, ...MODEL_CAPABILITIES[unsuffixedBase] };
+  if (unsuffixedModel && MODEL_CAPABILITIES[unsuffixedModel]) return { ...DEFAULT_CAPABILITIES, ...MODEL_CAPABILITIES[unsuffixedModel] };
 
   // 3. Pattern match (first match wins), refined by catalog + name heuristic
   for (const { pattern, caps } of PATTERN_CAPABILITIES) {
