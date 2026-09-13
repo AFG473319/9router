@@ -1,12 +1,12 @@
 export default function manifest() {
   return {
-    name: '9Router - AI Infrastructure Management',
-    short_name: '9Router',
+    name: 'AFRouter - AI Infrastructure Management',
+    short_name: 'AFRouter',
     description: 'One endpoint for all your AI providers. Manage keys, monitor usage, and scale effortlessly.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#0a0a0a',
-    theme_color: '#0a0a0a',
+    background_color: '#0A0E17',
+    theme_color: '#0A0E17',
     orientation: 'portrait-primary',
     icons: [
       {
