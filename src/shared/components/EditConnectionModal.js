@@ -213,7 +213,7 @@ export default function EditConnectionModal({ isOpen, connection, proxyPools, on
             onChange={(event) => setAiCreditLimit(event.target.value)}
             placeholder="No local limit"
             error={invalidCreditLimit ? "Enter a non-negative number." : undefined}
-            hint="Blank disables the limit; 0 blocks all requests. Checks GitHub-reported total credits before each request and blocks if usage is unavailable. Reporting delays and in-flight requests can exceed this cutoff; it is not a guaranteed spending ceiling. Applies only to this connection’s traffic through 9Router."
+            hint="Blank disables the limit; 0 blocks all requests. Checks GitHub-reported total credits using a short-lived cache (30 seconds by default), and blocks if usage is unavailable. Cached usage, reporting delays, and in-flight requests can exceed this cutoff; it is not a guaranteed spending ceiling. Applies only to this connection’s traffic through 9Router."
           />
         )}
         <Input
