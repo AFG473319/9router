@@ -3,7 +3,7 @@
   
   # AFRouter - FREE AI Router & Token Saver
 
-> **AFRouter** is a maintained personal fork of [9Router](https://github.com/decolua/9router) with extra providers and fixes not yet upstream: Nous Portal (Hermes CLI OAuth), OrcaRouter, concurrent model testing, and a multi-model Grok Build integration. Runs on port **30128** with its own data directory (`%APPDATA%/afrouter` / `~/.afrouter`), so it coexists with a stock 9Router install. Install: `npm install -g @afg473319/afrouter`.
+> **AFRouter** is a maintained personal fork of [9Router](https://github.com/decolua/9router) with extra providers and fixes not yet upstream: Nous Portal (Hermes CLI OAuth), OrcaRouter, concurrent model testing, and a multi-model Grok Build integration. Runs on port **20128** with its own data directory (`%APPDATA%/afrouter` / `~/.afrouter`), so it coexists with a stock 9Router install. Install: `npm install -g @afg473319/afrouter`.
   
   **Never stop coding. Save 20-40% tokens with RTK + auto-fallback to FREE & cheap AI models.**
   
