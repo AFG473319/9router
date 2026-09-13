@@ -65,6 +65,16 @@ function toPercent(used, total) {
   return Math.max(0, Math.min(100, Math.round(((total - used) / total) * 100)));
 }
 
+// Credit amounts are fractional USD (e.g. 1.261 of a 16 cap). The dashboard
+// renders `used`/`total` with the viewer's own locale, and in most of
+// Europe/Indonesia a comma is the decimal separator — so a numeric 1.261 is
+// shown as "1,261" and reads as one thousand two hundred sixty-one against a
+// cap of 16. Formatting here (dot decimal, fixed 2dp) keeps the figure
+// unambiguous regardless of the viewer's locale.
+function formatCredit(value, decimals = 2) {
+  return toFiniteNumber(value, 0).toFixed(decimals);
+}
+
 /**
  * Build a window quota entry from the upstream windowLimits shape.
  * `used`/`cap` are USD credits. The dashboard renders `remainingPercentage`
@@ -76,8 +86,8 @@ function windowQuota(window) {
   const used = Math.max(0, toFiniteNumber(window.used, 0));
   const cap = Math.max(0, toFiniteNumber(window.cap, 0));
   return {
-    used,
-    total: cap,
+    used: formatCredit(used),
+    total: formatCredit(cap),
     remainingPercentage: toPercent(used, cap),
     resetAt: parseResetTime(window.resetAt),
   };
@@ -158,8 +168,8 @@ export async function getCommandCodeUsage(apiKey = null, proxyOptions = null) {
       const allowance = remaining + spent;
       if (allowance > 0) {
         quotaMap["Monthly credits"] = {
-          used: spent,
-          total: allowance,
+          used: formatCredit(spent),
+          total: formatCredit(allowance),
           remainingPercentage: toPercent(spent, allowance),
           resetAt: parseResetTime(
             subscription.data?.data?.currentPeriodEnd ??
