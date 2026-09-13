@@ -1,5 +1,5 @@
 {
-  "name": "afrouter",
+  "name": "@afg473319/afrouter",
   "version": "0.5.75",
   "description": "AFRouter CLI - Start and manage AFRouter server",
   "bin": {
@@ -17,7 +17,7 @@
     "dev": "nodemon -I --watch cli.js --watch src --watch hooks --ext js,json cli.js",
     "build": "node scripts/build-cli.js",
     "pack:cli": "npm run build && node scripts/sanitize-personal.js && npm pack --pack-destination ..",
-    "publish:cli": "npm run build && npm publish",
+    "publish:cli": "npm run build && npm publish --access=public",
     "postinstall": "node hooks/postinstall.js",
     "prepublishOnly": "npm run build && node scripts/sanitize-personal.js"
   },
