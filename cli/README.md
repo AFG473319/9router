@@ -37,11 +37,11 @@
 ## ⚡ Quick Start
 
 ```bash
-npm install -g afrouter
+npm install -g @afg473319/afrouter
 afrouter
 
 # Or run directly with npx
-npx afrouter
+npx @afg473319/afrouter
 ```
 
 🎉 Dashboard opens at `http://localhost:30128`
