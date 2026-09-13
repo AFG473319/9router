@@ -373,6 +373,8 @@ export default function CombosPage() {
           </ul>
           <p className="text-xs text-text-muted mt-3 max-w-2xl">
             <span className="font-medium text-text-main">Cursor / Claude Default</span> create combos named exactly like those clients&apos; model IDs (e.g. <code className="font-mono">composer-2.5</code>, <code className="font-mono">opus</code>), seeded with the matching <code className="font-mono">cu/…</code> or <code className="font-mono">cc/…</code> route so traffic can hit 9router without the prefix.
+            {" "}Bare Cursor catalog ids (e.g. <code className="font-mono">gpt-5.6-sol</code>) also resolve to <code className="font-mono">cu/…</code> when a Cursor connection is active — they no longer fall through to the OpenAI provider.
+            {" "}Note: Cursor IDE itself often blocks built-in Composer / Grok from Override OpenAI Base URL (&quot;model does not support custom API&quot;); add them via Cursor&apos;s <span className="font-medium text-text-main">Add Custom Model</span> using the combo name, or pick a model Cursor allows through the custom endpoint.
           </p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-stretch">
