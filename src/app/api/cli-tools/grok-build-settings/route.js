@@ -54,7 +54,7 @@ const normalizeContextWindow = (value, model) => {
   return getCapabilitiesForModel(provider, modelId).contextWindow;
 };
 
-// Fill each model's specs from 9Router's capability tables, letting explicit
+// Fill each model's specs from AFRouter's capability tables, letting explicit
 // values win. Grok exposes context_window / max_completion_tokens natively;
 // vision/reasoning ride along in the section description.
 const resolveModelSpec = (id, explicit = {}) => {
@@ -107,7 +107,7 @@ const normalizeSubagentModels = (value) => {
   return result;
 };
 
-const has9RouterConfig = (settings) => (settings?.models?.length || 0) > 0;
+const hasAFRouterConfig = (settings) => (settings?.models?.length || 0) > 0;
 
 export async function GET() {
   try {
@@ -124,7 +124,7 @@ export async function GET() {
     return NextResponse.json({
       installed: true,
       settings,
-      has9Router: has9RouterConfig(settings),
+      hasAFRouter: hasAFRouterConfig(settings),
       configPath: getGrokConfigPath(),
     });
   } catch (error) {
@@ -145,7 +145,7 @@ export async function POST(request) {
     const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
     const toml = applyGrokBuildConfig(await readConfigToml(), {
       baseUrl: normalizedBaseUrl,
-      apiKey: apiKey || "sk_9router",
+      apiKey: apiKey || "sk_afrouter",
       models: modelList,
       subagentModels: normalizeSubagentModels(subagentModels),
     });
@@ -179,7 +179,7 @@ export async function DELETE() {
     await fs.writeFile(configPath, resetGrokBuildConfig(toml));
     return NextResponse.json({
       success: true,
-      message: "9router model slots removed from Grok Build",
+      message: "afrouter model slots removed from Grok Build",
     });
   } catch (error) {
     console.log("Error resetting grok-build settings:", error);

@@ -3,7 +3,7 @@
 ## Problem
 
 OpenCode Go will begin rejecting some requests without an
-`x-opencode-session` header on September 6, 2026. In 9Router v0.5.65,
+`x-opencode-session` header on September 6, 2026. In AFRouter v0.5.65,
 `opencode-go` uses `DefaultExecutor`, whose generic header builder does not add
 that header. The specialized OpenCode Free executor already sends it, but that
 logic does not apply to the paid OpenCode Go provider or its three transports.
@@ -106,7 +106,7 @@ the full offline test suite, the application build, and the CLI package build.
 
 Build the CLI with `npm --prefix cli run build`, create a package with
 `npm --prefix cli pack`, and install the generated tarball globally to replace
-the current npm-installed `9router@0.5.65`. Verify the installed package version
+the current npm-installed `afrouter@0.5.65`. Verify the installed package version
 and packaged source contains the new executor.
 
 Upstream issue #3759 already tracks the problem, so no duplicate issue will be

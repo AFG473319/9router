@@ -19,7 +19,7 @@ RUN npm run build
 FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 
-LABEL org.opencontainers.image.title="9router"
+LABEL org.opencontainers.image.title="afrouter"
 
 ENV NODE_ENV=production
 ENV PORT=20128
@@ -46,7 +46,7 @@ COPY --from=builder /app/node_modules/node-machine-id ./node_modules/node-machin
 
 RUN mkdir -p /app/data && chown -R node:node /app && \
   mkdir -p /app/data-home && chown node:node /app/data-home && \
-  ln -sf /app/data-home /root/.9router 2>/dev/null || true
+  ln -sf /app/data-home /root/.afrouter 2>/dev/null || true
 
 # Fix permissions at runtime (handles mounted volumes)
 RUN apk --no-cache upgrade && apk --no-cache add su-exec && \

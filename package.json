@@ -1,7 +1,7 @@
 {
   "name": "afrouter-app",
-  "version": "0.5.76",
-  "description": "9Router web dashboard",
+  "version": "0.5.78",
+  "description": "AFRouter web dashboard",
   "private": true,
   "scripts": {
     "dev": "next dev --port 20128",

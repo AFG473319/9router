@@ -82,15 +82,15 @@ export default function GrokBuildToolCard({
     n % 1000 === 0 ? `${Math.round(n / 1000)}K` : n.toLocaleString("en-US");
   const describeModel = (model) => {
     const caps = getCapsFor(model);
-    if (!caps) return "Routed via 9Router gateway";
+    if (!caps) return "Routed via AFRouter gateway";
     const parts = [];
     if (caps.vision) parts.push("vision");
     if (caps.reasoning) parts.push("reasoning");
     if (caps.contextWindow) parts.push(`${fmtTokens(caps.contextWindow)} context`);
     if (caps.maxOutput) parts.push(`${fmtTokens(caps.maxOutput)} max output`);
     return parts.length > 0
-      ? `Routed via 9Router gateway · ${parts.join(" · ")}`
-      : "Routed via 9Router gateway";
+      ? `Routed via AFRouter gateway · ${parts.join(" · ")}`
+      : "Routed via AFRouter gateway";
   };
   const configuredModels = initialStatus?.settings?.models || [];
   const initialModel = configuredModels[0]?.model
@@ -190,7 +190,7 @@ export default function GrokBuildToolCard({
     try {
       const keyToUse = selectedApiKey?.trim()
         || (apiKeys?.length > 0 ? apiKeys[0].key : null)
-        || (!cloudEnabled ? "sk_9router" : null);
+        || (!cloudEnabled ? "sk_afrouter" : null);
       const mappedSubagents = {};
       for (const type of SUBAGENT_TYPES) {
         const model = subagentModels[type.id]?.trim();
@@ -276,7 +276,7 @@ export default function GrokBuildToolCard({
 
   const getManualConfigs = () => {
     const keyToUse = selectedApiKey?.trim()
-      || (!cloudEnabled ? "sk_9router" : "<API_KEY_FROM_DASHBOARD>");
+      || (!cloudEnabled ? "sk_afrouter" : "<API_KEY_FROM_DASHBOARD>");
     const baseUrl = getEffectiveBaseUrl();
     const allModels = [selectedModel, ...extraModels]
       .map((model) => model?.trim())
@@ -405,7 +405,7 @@ export default function GrokBuildToolCard({
                 <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-[8rem_auto_1fr] sm:items-start sm:gap-2">
                   <div className="sm:text-right">
                     <span className="text-xs font-semibold text-text-main sm:text-sm">More Models</span>
-                    <p className="mt-0.5 text-[10px] leading-tight text-text-muted">Also written to Grok Build so you can switch models in its picker without touching 9Router.</p>
+                    <p className="mt-0.5 text-[10px] leading-tight text-text-muted">Also written to Grok Build so you can switch models in its picker without touching AFRouter.</p>
                   </div>
                   <span className="material-symbols-outlined hidden text-text-muted text-[14px] sm:inline">arrow_forward</span>
                   <div className="flex min-w-0 flex-wrap items-center gap-1.5">
@@ -466,7 +466,7 @@ export default function GrokBuildToolCard({
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <Button variant="primary" size="sm" onClick={handleApply} disabled={!selectedModel} loading={applying} className="w-full sm:w-auto"><span className="material-symbols-outlined text-[14px] mr-1">save</span>Apply</Button>
-                <Button variant="outline" size="sm" onClick={handleReset} disabled={!grokStatus?.has9Router} loading={restoring} className="w-full sm:w-auto"><span className="material-symbols-outlined text-[14px] mr-1">restore</span>Reset</Button>
+                <Button variant="outline" size="sm" onClick={handleReset} disabled={!grokStatus?.hasAFRouter} loading={restoring} className="w-full sm:w-auto"><span className="material-symbols-outlined text-[14px] mr-1">restore</span>Reset</Button>
                 <Button variant="ghost" size="sm" onClick={() => setShowManualConfigModal(true)} className="w-full sm:w-auto"><span className="material-symbols-outlined text-[14px] mr-1">content_copy</span>Manual Config</Button>
               </div>
             </>

@@ -63,7 +63,7 @@ export default function LandingPage() {
                 Start Free
               </button>
               <button 
-                onClick={() => window.open("https://github.com/decolua/9router#readme", "_blank")}
+                onClick={() => window.open("https://github.com/AFG473319/AFRouter#readme", "_blank")}
                 className="w-full sm:w-auto h-14 px-10 rounded-lg border border-[#24344F] hover:bg-[#0F1A33] text-white text-lg font-bold transition-all"
               >
                 Read Documentation

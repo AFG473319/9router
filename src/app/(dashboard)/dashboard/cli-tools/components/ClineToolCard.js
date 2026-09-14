@@ -55,7 +55,7 @@ export default function ClineToolCard({ tool, isExpanded, onToggle, baseUrl, api
 
   const getConfigStatus = () => {
     if (!status?.installed) return null;
-    if (!status.has9Router) return "not_configured";
+    if (!status.hasAFRouter) return "not_configured";
     const url = status.settings?.openAiBaseUrl || "";
     return matchKnownEndpoint(url, { tunnelPublicUrl, tailscaleUrl }) ? "configured" : "other";
   };
@@ -88,7 +88,7 @@ export default function ClineToolCard({ tool, isExpanded, onToggle, baseUrl, api
     try {
       const keyToUse = (selectedApiKey && selectedApiKey.trim())
         ? selectedApiKey
-        : (!cloudEnabled ? "sk_9router" : selectedApiKey);
+        : (!cloudEnabled ? "sk_afrouter" : selectedApiKey);
 
       const res = await fetch("/api/cli-tools/cline-settings", {
         method: "POST",
@@ -134,7 +134,7 @@ export default function ClineToolCard({ tool, isExpanded, onToggle, baseUrl, api
   const getManualConfigs = () => {
     const keyToUse = (selectedApiKey && selectedApiKey.trim())
       ? selectedApiKey
-      : (!cloudEnabled ? "sk_9router" : "<API_KEY_FROM_DASHBOARD>");
+      : (!cloudEnabled ? "sk_afrouter" : "<API_KEY_FROM_DASHBOARD>");
     const effectiveUrl = getEffectiveBaseUrl();
     const baseWithoutV1 = effectiveUrl.endsWith("/v1") ? effectiveUrl.slice(0, -3) : effectiveUrl;
 
@@ -192,7 +192,7 @@ export default function ClineToolCard({ tool, isExpanded, onToggle, baseUrl, api
                   <span className="material-symbols-outlined text-yellow-500">warning</span>
                   <div className="flex-1">
                     <p className="font-medium text-yellow-600 dark:text-yellow-400">Cline not detected locally</p>
-                    <p className="text-sm text-text-muted">Manual configuration is still available if 9router is deployed on a remote server.</p>
+                    <p className="text-sm text-text-muted">Manual configuration is still available if afrouter is deployed on a remote server.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 pl-9">

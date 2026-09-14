@@ -1,6 +1,6 @@
 # 故障排除
 
-使用 9Router 时常见的问题与解决方案。
+使用 AFRouter 时常见的问题与解决方案。
 
 ---
 
@@ -78,7 +78,7 @@
 **解决方案:**
 
 1. **自动刷新(默认):**
-   9Router 会自动刷新 token。等待 30 秒后重试。
+   AFRouter 会自动刷新 token。等待 30 秒后重试。
 
 2. **手动重连:**
    ```
@@ -135,15 +135,15 @@
 **问题:** 出现 "ECONNREFUSED" 或 "Cannot connect to localhost:20128"。
 
 **原因:**
-- 9Router 未运行
+- AFRouter 未运行
 - 端口 20128 被阻止
 - 防火墙拦截连接
 
 **解决方案:**
 
-1. **启动 9Router:**
+1. **启动 AFRouter:**
    ```bash
-   9router
+   afrouter
    ```
    仪表盘应该在 http://localhost:3000 打开。
 
@@ -175,15 +175,15 @@
 
 **原因:**
 - 端口 3000 被占用
-- 9Router 崩溃
+- AFRouter 崩溃
 - 浏览器缓存问题
 
 **解决方案:**
 
-1. **确认 9Router 是否运行:**
+1. **确认 AFRouter 是否运行:**
    ```bash
    # 检查进程
-   ps aux | grep 9router
+   ps aux | grep afrouter
    
    # 检查端口 3000
    lsof -i :3000
@@ -199,13 +199,13 @@
    taskkill /PID <PID> /F
    ```
 
-3. **重启 9Router:**
+3. **重启 AFRouter:**
    ```bash
    # 停止
-   pkill -f 9router
+   pkill -f afrouter
    
    # 启动
-   9router
+   afrouter
    ```
 
 4. **清除浏览器缓存:**
@@ -346,6 +346,6 @@
 
 ## 需要更多帮助?
 
-- **GitHub Issues:** [github.com/decolua/9router/issues](https://github.com/decolua/9router/issues)
+- **GitHub Issues:** [github.com/AFG473319/AFRouter/issues](https://github.com/AFG473319/AFRouter/issues)
 - **文档:** [9router.com/docs](https://9router.com/docs)
 - **常见问题:** [faq.md](faq.md)

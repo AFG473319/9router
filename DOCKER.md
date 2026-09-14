@@ -1,6 +1,6 @@
 # Docker
 
-Run 9Router in a container. Published image: [`decolua/9router`](https://hub.docker.com/r/decolua/9router) — multi-platform `linux/amd64` + `linux/arm64`.
+Run AFRouter in a container. Published image: [`decolua/9router`](https://hub.docker.com/r/decolua/9router) — multi-platform `linux/amd64` + `linux/arm64`.
 
 ---
 
@@ -11,9 +11,9 @@ Run 9Router in a container. Published image: [`decolua/9router`](https://hub.doc
 ```bash
 docker run -d \
   -p 20128:20128 \
-  -v "$HOME/.9router:/app/data" \
+  -v "$HOME/.afrouter:/app/data" \
   -e DATA_DIR=/app/data \
-  --name 9router \
+  --name afrouter \
   decolua/9router:latest
 ```
 
@@ -22,20 +22,20 @@ App listens on port `20128`. Open: http://localhost:20128
 ## Manage container
 
 ```bash
-docker logs -f 9router        # view logs
-docker stop 9router           # stop
-docker start 9router          # start again
-docker rm -f 9router          # remove
+docker logs -f afrouter        # view logs
+docker stop afrouter           # stop
+docker start afrouter          # start again
+docker rm -f afrouter          # remove
 ```
 
 ## Data persistence
 
 ```bash
--v "$HOME/.9router:/app/data" \
+-v "$HOME/.afrouter:/app/data" \
 -e DATA_DIR=/app/data
 ```
 
-Without `DATA_DIR`, the app falls back to `~/.9router/` (macOS/Linux) or `%APPDATA%\9router\` (Windows). In the container, `DATA_DIR=/app/data` makes the bind mount work.
+Without `DATA_DIR`, the app falls back to `~/.afrouter/` (macOS/Linux) or `%APPDATA%\afrouter\` (Windows). In the container, `DATA_DIR=/app/data` makes the bind mount work.
 
 Data layout under `$DATA_DIR/`:
 
@@ -47,7 +47,7 @@ $DATA_DIR/
 └── ...                   # certs, logs, runtime configs
 ```
 
-Host path: `$HOME/.9router/db/data.sqlite`
+Host path: `$HOME/.afrouter/db/data.sqlite`
 Container path: `/app/data/db/data.sqlite`
 
 ## Optional env vars
@@ -55,27 +55,27 @@ Container path: `/app/data/db/data.sqlite`
 ```bash
 docker run -d \
   -p 20128:20128 \
-  -v "$HOME/.9router:/app/data" \
+  -v "$HOME/.afrouter:/app/data" \
   -e DATA_DIR=/app/data \
   -e PORT=20128 \
   -e HOSTNAME=0.0.0.0 \
   -e DEBUG=true \
-  --name 9router \
+  --name afrouter \
   decolua/9router:latest
 ```
 
 ## Optional Headroom sidecar
 
-The 9Router image does not bundle Python or Headroom. To use Headroom in Docker, run it as a separate service and point 9Router at that proxy:
+The AFRouter image does not bundle Python or Headroom. To use Headroom in Docker, run it as a separate service and point AFRouter at that proxy:
 
 ```yaml
 services:
-  9router:
+  afrouter:
     image: decolua/9router:latest
     ports:
       - "20128:20128"
     volumes:
-      - "$HOME/.9router:/app/data"
+      - "$HOME/.afrouter:/app/data"
     environment:
       DATA_DIR: /app/data
       HEADROOM_URL: http://headroom:8787
@@ -96,7 +96,7 @@ If Headroom runs on the Docker host instead of as a sidecar, use `http://host.do
 
 ```bash
 docker pull decolua/9router:latest
-docker rm -f 9router
+docker rm -f afrouter
 # re-run the quick start command
 ```
 
@@ -107,12 +107,12 @@ docker rm -f 9router
 ## Build image locally (test)
 
 ```bash
-cd app && docker build -t 9router .
+cd app && docker build -t afrouter .
 
 docker run --rm -p 20128:20128 \
-  -v "$HOME/.9router:/app/data" \
+  -v "$HOME/.afrouter:/app/data" \
   -e DATA_DIR=/app/data \
-  9router
+  afrouter
 ```
 
 ## Publish (automatic via CI)

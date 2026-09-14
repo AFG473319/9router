@@ -2,10 +2,10 @@ export const GROK_SUBAGENT_TYPES = ["general-purpose", "explore", "plan"];
 
 // Sections we write are tagged with this description so re-apply/reset can find
 // and clean them up even after the slot naming scheme changes (legacy slots were
-// named `9router` / `9router-<type>`).
-export const GROK_OWNED_MARKER = "Routed via 9Router gateway";
+// named `afrouter` / `afrouter-<type>`).
+export const GROK_OWNED_MARKER = "Routed via AFRouter gateway";
 
-const UNSET_SENTINEL = "__9router_unset__";
+const UNSET_SENTINEL = "__afrouter_unset__";
 const MODELS_SECTION = "models";
 const SUBAGENT_MODELS_SECTION = "subagents.models";
 
@@ -21,10 +21,10 @@ const sectionRegExp = (section) =>
 // Enumerates every `[model.<slot>]` section. Slots are always written as bare keys.
 const MODEL_SECTION_GLOBAL = /^\[model\.([A-Za-z0-9_-]+)\][ \t]*\r?\n((?:(?!\[)[^\r\n]*\r?\n?)*)/gm;
 
-const previousDefaultRegExp = /^# 9router-prev-default = "([^"]*)"[ \t]*\r?\n?/m;
+const previousDefaultRegExp = /^# afrouter-prev-default = "([^"]*)"[ \t]*\r?\n?/m;
 const previousSubagentRegExp = (type) =>
   new RegExp(
-    `^# 9router-prev-subagent-${escapeRegExp(type)} = "([^"]*)"[ \\t]*\\r?\\n?`,
+    `^# afrouter-prev-subagent-${escapeRegExp(type)} = "([^"]*)"[ \\t]*\\r?\\n?`,
     "m",
   );
 
@@ -190,7 +190,7 @@ function rememberPreviousDefault(toml) {
   if (previousDefaultRegExp.test(toml)) return toml;
   const current = getSectionField(toml, MODELS_SECTION, "default");
   if (!current || isOwnedSlot(toml, current)) return toml;
-  return insertMarker(toml, `# 9router-prev-default = ${tomlString(current)}\n`);
+  return insertMarker(toml, `# afrouter-prev-default = ${tomlString(current)}\n`);
 }
 
 function restorePreviousDefault(toml) {
@@ -209,7 +209,7 @@ function rememberPreviousSubagent(toml, type) {
   const previous = current == null ? UNSET_SENTINEL : current;
   return insertMarker(
     toml,
-    `# 9router-prev-subagent-${type} = ${tomlString(previous)}\n`,
+    `# afrouter-prev-subagent-${type} = ${tomlString(previous)}\n`,
   );
 }
 
@@ -234,7 +234,7 @@ function restorePreviousSubagent(toml, type) {
  * `models` is an ordered list of `{ model, contextWindow }`; the first entry
  * becomes `[models] default`. Every entry gets its own `[model.<slot>]` section
  * (slot derived from the model id, display name = the model id itself) so Grok
- * Build's model picker can switch between them without touching 9Router.
+ * Build's model picker can switch between them without touching AFRouter.
  * Subagent overrides reuse an existing slot when the model matches one of the
  * main models, otherwise they get a section of their own.
  * `subagentModels === undefined` leaves existing subagent config untouched for

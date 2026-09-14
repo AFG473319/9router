@@ -4,7 +4,7 @@
  * does not accept them (DeepSeek — accepts only web_search_*).
  *
  * Background:
- *   When Claude Code talks to a DeepSeek route via /v1/messages, 9router
+ *   When Claude Code talks to a DeepSeek route via /v1/messages, afrouter
  *   forwards the request body as Claude-format to
  *   https://api.deepseek.com/anthropic/v1/messages. MCP / function tools
  *   arrive with `type: "custom"`. DeepSeek rejects them with HTTP 400

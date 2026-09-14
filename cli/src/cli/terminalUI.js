@@ -67,14 +67,14 @@ async function startTerminalUI(port) {
   // Configure API client
   api.configure({ port });
 
-  const basePath = ["9Router"];
+  const basePath = ["AFRouter"];
 
   // Prime header cache before first render
   await refreshHeaderBg(port);
 
   // Main menu
   await showMenuWithBack({
-    title: "📡 9Router Terminal UI",
+    title: "📡 AFRouter Terminal UI",
     breadcrumb: basePath,
     headerContent: () => getHeader(port),
     items: [

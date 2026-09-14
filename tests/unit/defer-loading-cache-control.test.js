@@ -5,7 +5,7 @@
  *   [400] Tool 'mcp__x__y' cannot both defer_loading=true cache_control set.
  *         Tools defer_loading cannot use prompt caching.
  *
- * 9router anchors the 1h cache breakpoint on the LAST tool of the array with
+ * afrouter anchors the 1h cache breakpoint on the LAST tool of the array with
  * no guard. Clients that speak MCP (Claude Code) put deferred tools at the
  * tail, so the anchor lands exactly on a tool that cannot be cached and the
  * request 400s before combo fallback can try the next hop.

@@ -188,12 +188,12 @@ git commit -m "fix(chat): forward provider session context"
 ### Task 4: Verify and Install the Local CLI Package
 
 **Files:**
-- Generated: `9router-0.5.65.tgz`
+- Generated: `afrouter-0.5.65.tgz`
 - Packaged output: `cli/app/server.js`
 
 **Interfaces:**
 - Consumes: completed source changes and existing CLI build scripts.
-- Produces: a globally installed patched `9router@0.5.65`.
+- Produces: a globally installed patched `afrouter@0.5.65`.
 
 - [ ] **Step 1: Run source verification**
 
@@ -213,15 +213,15 @@ npm --prefix cli run build
 npm --prefix cli pack -- --pack-destination ..
 ```
 
-Expected: `9router-0.5.65.tgz` exists and contains the patched bundled server.
+Expected: `afrouter-0.5.65.tgz` exists and contains the patched bundled server.
 
 - [ ] **Step 3: Replace the global npm installation**
 
 ```bash
-npm install -g ./9router-0.5.65.tgz
+npm install -g ./afrouter-0.5.65.tgz
 ```
 
-Expected: `/opt/homebrew/lib/node_modules/9router/package.json` reports `0.5.65`
+Expected: `/opt/homebrew/lib/node_modules/afrouter/package.json` reports `0.5.65`
 and the installed bundle contains `x-opencode-session` plus the new executor.
 
 - [ ] **Step 4: Commit any required package-source adjustment**

@@ -109,7 +109,7 @@ export function buildAuthorizeUrl(publicKey, redirectUri, keyName) {
 
 /**
  * Get or create a stable key name for this installation.
- * Stored in the 9Router data dir so re-auth reuses the same name.
+ * Stored in the AFRouter data dir so re-auth reuses the same name.
  */
 export function getKeyName() {
   // Use a deterministic name based on machine — avoids needing filesystem writes
@@ -119,5 +119,5 @@ export function getKeyName() {
     .update(`${process.platform}-${process.env.COMPUTERNAME || process.env.HOSTNAME || "unknown"}`)
     .digest("hex")
     .slice(0, 8);
-  return `9router-xmd-${machineId}`;
+  return `afrouter-xmd-${machineId}`;
 }

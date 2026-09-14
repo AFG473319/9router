@@ -68,7 +68,7 @@ describe("grokBuildConfig", () => {
     });
     expect(result).toContain("max_completion_tokens = 128000");
     expect(result).toContain(
-      'description = "Routed via 9Router gateway · vision · reasoning · 400K context · 128K max output"',
+      'description = "Routed via AFRouter gateway · vision · reasoning · 400K context · 128K max output"',
     );
     expect(parsed.models).toHaveLength(2);
     expect(parsed.models[1]).toMatchObject({
@@ -79,7 +79,7 @@ describe("grokBuildConfig", () => {
     });
     expect(result).toContain("[model.cx-gpt-5-6-sol]");
     expect(result).toContain("[model.cc-claude-sonnet-5]");
-    expect(result).not.toContain("[model.9router]");
+    expect(result).not.toContain("[model.afrouter]");
   });
 
   it("preserves unrelated config sections", () => {
@@ -104,7 +104,7 @@ describe("grokBuildConfig", () => {
     expect(result.match(/^\[model\.cx-gpt-5-6-sol\]$/gm)).toHaveLength(1);
     expect(result.match(/^\[model\.cc-claude-sonnet-5\]$/gm)).toHaveLength(1);
     expect(result).toContain("[model.gemini-gemini-3-flash]");
-    expect(result.match(/^# 9router-prev-subagent-explore/gm)).toHaveLength(1);
+    expect(result.match(/^# afrouter-prev-subagent-explore/gm)).toHaveLength(1);
     expect(parseGrokBuildConfig(result).models).toHaveLength(3);
 
     // Re-apply with a different set: stale owned slots disappear.
@@ -174,8 +174,8 @@ describe("grokBuildConfig", () => {
       explore: "grok-build",
       plan: "grok-4.5",
     });
-    expect(reset).not.toContain("Routed via 9Router gateway");
-    expect(reset).not.toContain("9router-prev-");
+    expect(reset).not.toContain("Routed via AFRouter gateway");
+    expect(reset).not.toContain("afrouter-prev-");
     expect(reset).toContain("[mcp_servers.example]");
   });
 
@@ -195,37 +195,37 @@ describe("grokBuildConfig", () => {
     expect(reset).toContain("[mcp_servers.x]");
   });
 
-  it("migrates legacy 9router slots written by older versions", () => {
+  it("migrates legacy afrouter slots written by older versions", () => {
     const legacy = `${BASE_CONFIG}
-# 9router-prev-default = "grok-4.5"
+# afrouter-prev-default = "grok-4.5"
 
-[model.9router]
+[model.afrouter]
 model = "cx/gpt-5.6-sol"
 base_url = "http://127.0.0.1:20128/v1"
-name = "9Router"
-description = "Routed via 9Router gateway"
+name = "AFRouter"
+description = "Routed via AFRouter gateway"
 api_backend = "chat_completions"
-api_key = "sk_9router"
+api_key = "sk_afrouter"
 context_window = 400000
 
 [subagents.models]
-general-purpose = "9router-general-purpose"
+general-purpose = "afrouter-general-purpose"
 
-[model.9router-general-purpose]
+[model.afrouter-general-purpose]
 model = "cc/claude-sonnet-5"
 base_url = "http://127.0.0.1:20128/v1"
-name = "9Router general-purpose"
-description = "Routed via 9Router gateway"
+name = "AFRouter general-purpose"
+description = "Routed via AFRouter gateway"
 api_backend = "chat_completions"
-api_key = "sk_9router"
+api_key = "sk_afrouter"
 `;
 
     const applied = applyGrokBuildConfig(legacy, APPLY_INPUT);
-    expect(applied).not.toContain("[model.9router]");
+    expect(applied).not.toContain("[model.afrouter]");
     expect(applied).toContain("[model.cx-gpt-5-6-sol]");
 
     const reset = resetGrokBuildConfig(applied);
-    expect(reset).not.toContain("Routed via 9Router gateway");
+    expect(reset).not.toContain("Routed via AFRouter gateway");
     expect(parseGrokBuildConfig(reset).default).toBe("grok-4.5");
     expect(parseGrokBuildConfig(reset).subagentMappings["general-purpose"]).toBe("grok-4.5");
   });
@@ -254,7 +254,7 @@ api_key = "sk_9router"
     });
     expect(result).toContain("[model.unknown-model]");
     expect(result).not.toMatch(/context_window|max_completion_tokens/);
-    expect(result).toContain(`description = "Routed via 9Router gateway"`);
+    expect(result).toContain(`description = "Routed via AFRouter gateway"`);
     const parsed = parseGrokBuildConfig(result);
     expect(parsed.model.context_window).toBeNull();
     expect(parsed.model.max_completion_tokens).toBeNull();

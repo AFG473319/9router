@@ -1,4 +1,9 @@
-﻿# Unreleased
+﻿# v0.5.78 (2026-09-14)
+
+## Features
+- **Rebrand**: rename everything from 9Router to AFRouter — packages (`afrouter-app`, `@afg473319/afrouter`), CLI binary (`afrouter`), data dirs (`~/.afrouter`), internal headers (`x-afr-*`), default keys (`sk_afrouter`), skill ids, and UI strings; default port stays **20128**
+
+# Unreleased
 
 ## Features
 - **Providers**: add OrcaRouter (`orcarouter.ai`) — OpenAI-compatible gateway routing to OpenAI, Anthropic, Google, DeepSeek, Qwen, Kimi, GLM, MiniMax & more at provider cost; seeds current-gen models only (GPT 5.6 series, `orcarouter/free` / `orcarouter/fusion*` routers, the $0 free pool), plus embeddings/TTS/image endpoints and live `/v1/models` catalog fetching with older ids available on demand

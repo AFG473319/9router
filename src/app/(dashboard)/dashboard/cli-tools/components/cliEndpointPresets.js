@@ -50,8 +50,8 @@ function createStore({ storageKey, changeEvent, itemField, normalize = (v) => v,
 const stripSlash = (url) => (url || "").replace(/\/+$/, "");
 
 const endpoints = createStore({
-  storageKey: "9router.cliToolEndpointPresets",
-  changeEvent: "9router:endpoint-presets-changed",
+  storageKey: "afrouter.cliToolEndpointPresets",
+  changeEvent: "afrouter:endpoint-presets-changed",
   itemField: "baseUrl",
   normalize: stripSlash,
   defaultName: (url) => {
@@ -60,8 +60,8 @@ const endpoints = createStore({
 });
 
 const apiKeys = createStore({
-  storageKey: "9router.cliToolApiKeyPresets",
-  changeEvent: "9router:api-key-presets-changed",
+  storageKey: "afrouter.cliToolApiKeyPresets",
+  changeEvent: "afrouter:api-key-presets-changed",
   itemField: "key",
 });
 

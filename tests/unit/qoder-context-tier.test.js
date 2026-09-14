@@ -2,7 +2,7 @@
  * Qoder context-window tiers + routable model listing.
  *
  * The Qoder IDE lets a user pick 200K / 400K / 1M for a model; qodercli-style
- * requests (what 9router sends) only carry the default max_input_tokens. These
+ * requests (what afrouter sends) only carry the default max_input_tokens. These
  * tests pin the escalation policy and the payload fields the IDE writes.
  */
 import { describe, it, expect } from "vitest";

@@ -1,6 +1,6 @@
 # Empezar
 
-Pon en marcha 9Router en 5 minutos y comienza a enrutar solicitudes de IA de forma inteligente.
+Pon en marcha AFRouter en 5 minutos y comienza a enrutar solicitudes de IA de forma inteligente.
 
 ---
 
@@ -9,7 +9,7 @@ Pon en marcha 9Router en 5 minutos y comienza a enrutar solicitudes de IA de for
 ### 1. Instalar
 
 ```bash
-npm install -g 9router
+npm install -g afrouter
 ```
 
 **Requisitos:** Node.js 20+ ([Detalles de instalación](getting-started/installation.md))
@@ -17,7 +17,7 @@ npm install -g 9router
 ### 2. Iniciar
 
 ```bash
-9router
+afrouter
 ```
 
 🎉 **El dashboard se abre automáticamente** en `http://localhost:20128`
@@ -43,7 +43,7 @@ Dashboard → Providers → Connect [Provider]
 **Ejemplo: Claude Code**
 1. Clic en "Connect Claude Code"
 2. Inicia sesión con tu cuenta de Claude
-3. Autoriza 9Router
+3. Autoriza AFRouter
 4. ✅ ¡Listo! Usa el modelo: `cc/claude-opus-4-5-20251101`
 
 #### Opción B: API Key (Proveedores baratos)
@@ -83,14 +83,14 @@ Dashboard → Providers → Connect [Free Provider]
 
 ## 4. Usar en herramientas CLI
 
-Apunta tu herramienta de codificación a 9Router:
+Apunta tu herramienta de codificación a AFRouter:
 
 ### Cursor IDE
 
 ```
 Settings → Models → Advanced:
   OpenAI API Base URL: http://localhost:20128/v1
-  OpenAI API Key: [desde el dashboard de 9router]
+  OpenAI API Key: [desde el dashboard de afrouter]
   Model: cc/claude-opus-4-5-20251101
 ```
 
@@ -101,7 +101,7 @@ Edita `~/.claude/config.json`:
 ```json
 {
   "anthropic_api_base": "http://localhost:20128/v1",
-  "anthropic_api_key": "your-9router-api-key"
+  "anthropic_api_key": "your-afrouter-api-key"
 }
 ```
 
@@ -118,7 +118,7 @@ Model: cc/claude-opus-4-5-20251101
 
 ```bash
 export OPENAI_BASE_URL="http://localhost:20128"
-export OPENAI_API_KEY="your-9router-api-key"
+export OPENAI_API_KEY="your-afrouter-api-key"
 
 codex "your prompt"
 ```
@@ -243,5 +243,5 @@ Rutina diaria:
 ## ¿Necesitas ayuda?
 
 - **Sitio web**: [9router.com](https://9router.com)
-- **GitHub**: [github.com/decolua/9router](https://github.com/decolua/9router)
-- **Issues**: [github.com/decolua/9router/issues](https://github.com/decolua/9router/issues)
+- **GitHub**: [github.com/AFG473319/AFRouter](https://github.com/AFG473319/AFRouter)
+- **Issues**: [github.com/AFG473319/AFRouter/issues](https://github.com/AFG473319/AFRouter/issues)

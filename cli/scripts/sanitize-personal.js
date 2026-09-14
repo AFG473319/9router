@@ -10,7 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-const cliAppDir = process.env.NINEROUTER_CLI_APP_DIR || path.join(__dirname, "..", "app");
+const cliAppDir = process.env.AFROUTER_CLI_APP_DIR || path.join(__dirname, "..", "app");
 
 // The MITM sub-build creates a throwaway home dir under app/ with a real
 // machine-id file and a runtime-generated database — never ship it.
@@ -21,7 +21,7 @@ for (const junk of ["cli", ".build-home"]) {
     console.log(`[sanitize] removed build-artifact dir app/${junk}`);
   }
 }
-const home = path.join(os.homedir(), "9router"); // e.g. C:\Users\<name>\9router
+const home = path.join(os.homedir(), "afrouter"); // e.g. C:\Users\<name>\afrouter
 const username = path.basename(path.dirname(home));
 if (!username || username === "Users" || username === "") {
   console.log("[sanitize] could not derive username, skipping");

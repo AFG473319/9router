@@ -89,6 +89,7 @@ graphify-out/*
 
 # Kiro local workspace state
 .kiro/
+afrouter-*
 9router-*
 
 # Local sensitive / temp files

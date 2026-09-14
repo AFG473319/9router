@@ -1,6 +1,6 @@
 # トラブルシューティング
 
-9Router利用時の一般的な問題と解決策。
+AFRouter利用時の一般的な問題と解決策。
 
 ---
 
@@ -78,7 +78,7 @@
 **解決策:**
 
 1. **自動更新(デフォルト):**
-   9Routerは自動的にトークンを更新します。30秒待ってから再試行。
+   AFRouterは自動的にトークンを更新します。30秒待ってから再試行。
 
 2. **手動で再接続:**
    ```
@@ -135,15 +135,15 @@
 **問題:** 「ECONNREFUSED」または「Cannot connect to localhost:20128」。
 
 **原因:**
-- 9Routerが起動していない
+- AFRouterが起動していない
 - ポート20128がブロックされている
 - ファイアウォールが接続をブロック
 
 **解決策:**
 
-1. **9Routerを起動:**
+1. **AFRouterを起動:**
    ```bash
-   9router
+   afrouter
    ```
    ダッシュボードがhttp://localhost:3000で開くはず
 
@@ -175,15 +175,15 @@
 
 **原因:**
 - ポート3000がすでに使用中
-- 9Routerがクラッシュした
+- AFRouterがクラッシュした
 - ブラウザキャッシュの問題
 
 **解決策:**
 
-1. **9Routerが実行中か確認:**
+1. **AFRouterが実行中か確認:**
    ```bash
    # プロセスを確認
-   ps aux | grep 9router
+   ps aux | grep afrouter
    
    # ポート3000を確認
    lsof -i :3000
@@ -199,13 +199,13 @@
    taskkill /PID <PID> /F
    ```
 
-3. **9Routerを再起動:**
+3. **AFRouterを再起動:**
    ```bash
    # 停止
-   pkill -f 9router
+   pkill -f afrouter
    
    # 起動
-   9router
+   afrouter
    ```
 
 4. **ブラウザキャッシュをクリア:**
@@ -346,6 +346,6 @@
 
 ## さらにヘルプが必要?
 
-- **GitHub Issues:** [github.com/decolua/9router/issues](https://github.com/decolua/9router/issues)
+- **GitHub Issues:** [github.com/AFG473319/AFRouter/issues](https://github.com/AFG473319/AFRouter/issues)
 - **ドキュメント:** [9router.com/docs](https://9router.com/docs)
 - **FAQ:** [faq.md](faq.md)

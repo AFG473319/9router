@@ -4,7 +4,7 @@
 
 **Connect All AI Code Tools (Claude Code, Cursor, Antigravity, Copilot, Codex, Gemini, OpenCode, Cline, OpenClaw...) to 40+ AI Providers & 100+ Models.**
 
-> **AFRouter** is a maintained personal fork of [9Router](https://github.com/decolua/9router). It ships extra providers and fixes not yet upstream — Nous Portal (Hermes CLI OAuth), OrcaRouter, concurrent model testing on provider cards, and a multi-model Grok Build integration — and runs fully alongside a stock 9Router install: separate command (`afrouter`), separate port (**30128**), separate data directory.
+> **AFRouter** is a maintained personal fork of [9Router](https://github.com/decolua/9router). It ships extra providers and fixes not yet upstream — Nous Portal (Hermes CLI OAuth), OrcaRouter, concurrent model testing on provider cards, and a multi-model Grok Build integration — with its own command (`afrouter`) and separate data directory.
 
 [![npm](https://img.shields.io/npm/v/afrouter.svg)](https://www.npmjs.com/package/afrouter)
 [![Downloads](https://img.shields.io/npm/dm/afrouter.svg)](https://www.npmjs.com/package/afrouter)
@@ -44,9 +44,9 @@ afrouter
 npx @afg473319/afrouter
 ```
 
-🎉 Dashboard opens at `http://localhost:30128`
+🎉 Dashboard opens at `http://localhost:20128`
 
-**Runs alongside 9Router?** Yes — AFRouter defaults to port **30128** (9Router uses 20128) and keeps its data in its own directory, so both can run at once.
+**Runs alongside 9Router?** Yes — AFRouter keeps its data in its own directory, so it does not share state with a stock 9Router install. Only run one of them on port 20128 at a time, or start the second with `--port`.
 
 **2. Connect a FREE provider (no signup needed):**
 
@@ -56,7 +56,7 @@ Dashboard → Providers → Connect **Kiro AI** (free Claude unlimited) or **Ope
 
 ```
 Claude Code/Codex/OpenClaw/Cursor/Cline Settings:
-  Endpoint: http://localhost:30128/v1
+  Endpoint: http://localhost:20128/v1
   API Key:  [copy from dashboard]
   Model:    kr/claude-sonnet-4.5
 ```
@@ -70,14 +70,14 @@ That's it! Start coding with FREE AI models.
 ## 🚀 CLI Options
 
 ```bash
-afrouter                    # Start with default settings (port 30128)
+afrouter                    # Start with default settings (port 20128)
 afrouter --port 8080        # Custom port
 afrouter --no-browser       # Don't open browser
 afrouter --skip-update      # Skip auto-update check
 afrouter --help             # Show all options
 ```
 
-**Dashboard**: `http://localhost:30128/dashboard`
+**Dashboard**: `http://localhost:20128/dashboard`
 
 ---
 

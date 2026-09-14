@@ -32,7 +32,7 @@ Subscription tier providers are your **primary** choice - you're already paying 
 **Step 1: Connect via Dashboard**
 
 ```bash
-9router
+afrouter
 # Dashboard opens → Providers → Connect Claude Code
 ```
 
@@ -82,7 +82,7 @@ Model: cc/claude-opus-4-5-20251101
 **Step 1: Connect via Dashboard**
 
 ```bash
-9router
+afrouter
 # Dashboard → Providers → Connect Codex
 ```
 
@@ -121,12 +121,12 @@ a Codex account.
 
 ```bash
 curl http://localhost:20128/v1/images/generations \
-  -H "Authorization: Bearer $NINE_ROUTER_API_KEY" \
+  -H "Authorization: Bearer $AFROUTER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"cx/gpt-5.6-sol-image","prompt":"A blue square","size":"1024x1024"}'
 ```
 
-These are 9Router aliases: the image adapter removes `-image` and sends the
+These are AFRouter aliases: the image adapter removes `-image` and sends the
 underlying model an `image_generation` tool through the Codex Responses API.
 The same endpoint accepts an `image` reference for edits. Image generation
 requires an eligible ChatGPT Plus or higher account; availability of each
@@ -155,7 +155,7 @@ underlying model and its image tool depends on the connected account.
 **Step 1: Connect via Dashboard**
 
 ```bash
-9router
+afrouter
 # Dashboard → Providers → Connect Gemini CLI
 ```
 
@@ -207,7 +207,7 @@ Model: gc/gemini-3-flash-preview
 **Step 1: Connect via Dashboard**
 
 ```bash
-9router
+afrouter
 # Dashboard → Providers → Connect GitHub
 ```
 
@@ -257,7 +257,7 @@ Model: gh/gpt-5
 **Step 1: Connect via Dashboard**
 
 ```bash
-9router
+afrouter
 # Dashboard → Providers → Connect Antigravity
 ```
 
@@ -313,7 +313,7 @@ Model: ag/gemini-3-pro-high
 ```
 Settings → Models → Advanced:
   OpenAI API Base URL: http://localhost:20128/v1
-  OpenAI API Key: [from 9router dashboard]
+  OpenAI API Key: [from afrouter dashboard]
   Model: cc/claude-opus-4-5-20251101
 ```
 
@@ -337,7 +337,7 @@ Use in CLI: premium-coding
 
 ## Quota Tracking
 
-9Router tracks quota in real-time:
+AFRouter tracks quota in real-time:
 
 - **Token consumption** - Input/output tokens per request
 - **Reset countdown** - Time until next quota reset
@@ -406,7 +406,7 @@ Night: Cheap/free tier
 ### "OAuth token expired"
 
 **Solution:**
-- Auto-refreshed by 9Router
+- Auto-refreshed by AFRouter
 - If issues: Dashboard → Provider → Reconnect
 
 ### "Rate limiting"
