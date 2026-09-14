@@ -403,6 +403,32 @@ amp --model "{{model}}"
       },
     ],
   },
+  zcode: {
+    id: "zcode",
+    name: "ZCode",
+    image: "/providers/zcode.png",
+    color: "#0C2040",
+    description: "ZCode AI coding agent",
+    configType: "custom",
+    notes: [
+      {
+        type: "info",
+        text: "AFRouter writes a 9Router provider entry into ~/.zcode/v2/config.json so ZCode's model picker offers AFRouter models.",
+      },
+      {
+        type: "info",
+        text: "Reset removes only models AFRouter added — models you configured by hand under the 9Router entry are kept.",
+      },
+      {
+        type: "warning",
+        text: "Config path: Linux/macOS ~/.zcode/v2/config.json • Windows %USERPROFILE%\\.zcode\\v2\\config.json",
+      },
+      {
+        type: "warning",
+        text: "ZCode loads its config at session start — restart ZCode after Apply if it is running.",
+      },
+    ],
+  },
   devin: {
     id: "devin",
     name: "Devin CLI",
