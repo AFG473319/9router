@@ -31,6 +31,13 @@ export const MEMORY_CONFIG = {
   proxyDispatchersMaxSize: 20,
 };
 
+// Cap (chars) of streamed text kept per request for request-details capture.
+// estimateUsage reads totalContentLength (an integer), not these strings, and
+// the details row truncates to OBSERVABILITY_MAX_JSON_SIZE (default 5KB) anyway
+// — so holding the whole response text is wasted heap on long streams. 0 disables.
+// Env: STREAM_CONTENT_CAPTURE_MAX
+export const STREAM_CONTENT_CAPTURE_MAX = envMs("STREAM_CONTENT_CAPTURE_MAX", 4 * 1024);
+
 // Parse a positive integer env override, falling back to a default.
 function envMs(name, def) {
   const raw = process.env[name];

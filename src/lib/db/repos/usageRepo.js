@@ -537,8 +537,11 @@ export async function getUsageStats(period = "all") {
       }
     }
 
-    // Overlay precise lastUsed timestamps from history
-    const overlayCutoff = maxDays ? Date.now() - maxDays * 86400000 : 0;
+    // Overlay precise lastUsed timestamps from history. Bounded to the daily
+    // window (60d max even for "all") — scanning the full table on every
+    // dashboard poll/tick spiked memory as usageHistory grows unboundedly.
+    const overlayWindowMs = maxDays ? maxDays * 86400000 : PERIOD_MS["60d"];
+    const overlayCutoff = Date.now() - overlayWindowMs;
     const histRows = db.all(
       `SELECT timestamp, provider, model, connectionId, apiKey, endpoint FROM usageHistory WHERE timestamp >= ?`,
       [new Date(overlayCutoff).toISOString()]

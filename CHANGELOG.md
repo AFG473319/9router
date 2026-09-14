@@ -5,6 +5,10 @@
 
 # Unreleased
 
+## Performance
+- **Memory**: cap per-stream content/thinking capture to 4KB (`STREAM_CONTENT_CAPTURE_MAX`) — long agent/dashboard streams no longer pin the whole response text in heap; usage estimation still uses the unbounded `totalContentLength` counter. Remove the write-only unbounded content accumulator in the Ollama translator.
+- **Performance (usage stats)**: bound the `getUsageStats` last-used overlay scan to a 60-day window even for the `all` period, so the dashboard `/api/usage/stream` tick no longer reads the entire `usageHistory` table on every request.
+
 ## Features
 - **Providers**: add OrcaRouter (`orcarouter.ai`) — OpenAI-compatible gateway routing to OpenAI, Anthropic, Google, DeepSeek, Qwen, Kimi, GLM, MiniMax & more at provider cost; seeds current-gen models only (GPT 5.6 series, `orcarouter/free` / `orcarouter/fusion*` routers, the $0 free pool), plus embeddings/TTS/image endpoints and live `/v1/models` catalog fetching with older ids available on demand
 - **Capabilities**: resolve OrcaRouter router ids (`orcarouter/fusion*`, `orcarouter/free`) and its legacy `deepseek-chat`/`deepseek-reasoner` aliases (1M V4-Flash) with real catalog specs scoped to the provider; add `gpt-image-1.5`/`gpt-image-1-mini` to the canonical image-model table
