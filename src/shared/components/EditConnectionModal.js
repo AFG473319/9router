@@ -29,9 +29,11 @@ export default function EditConnectionModal({ isOpen, connection, proxyPools, on
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [aiCreditLimit, setAiCreditLimit] = useState("");
 
   useEffect(() => {
     if (connection) {
+      setAiCreditLimit(connection.providerSpecificData?.aiCreditLimit?.toString() ?? "");
       setFormData({
         name: connection.name || "",
         priority: connection.priority || 1,
@@ -65,6 +67,9 @@ export default function EditConnectionModal({ isOpen, connection, proxyPools, on
   const missingCx = isGooglePse && !formData.cx.trim();
   const googlePseData = isGooglePse ? { ...connection.providerSpecificData, cx: formData.cx.trim() } : undefined;
   const isOAuth = connection?.authType === "oauth";
+  const isGithub = connection?.provider === "github";
+  const invalidCreditLimit = isGithub && aiCreditLimit !== ""
+    && (!Number.isFinite(Number(aiCreditLimit)) || Number(aiCreditLimit) < 0);
   const isAzure = connection?.provider === "azure";
   const isCloudflareAi = connection?.provider === "cloudflare-ai";
   const isCompatible = connection
@@ -120,7 +125,7 @@ export default function EditConnectionModal({ isOpen, connection, proxyPools, on
   };
 
   const handleSubmit = async () => {
-    if (!connection || missingCx) return;
+    if (!connection || missingCx || invalidCreditLimit) return;
     setSaving(true);
     try {
       const updates = {
@@ -183,6 +188,9 @@ export default function EditConnectionModal({ isOpen, connection, proxyPools, on
         updates.providerSpecificData = buildRegionSpecificData();
       }
       
+      if (isGithub) {
+        updates.providerSpecificData = { aiCreditLimit: aiCreditLimit === "" ? null : Number(aiCreditLimit) };
+      }
       await onSave(updates);
     } finally {
       setSaving(false);
@@ -205,6 +213,19 @@ export default function EditConnectionModal({ isOpen, connection, proxyPools, on
             <p className="text-sm text-text-muted mb-1">Email</p>
             <p className="font-medium">{connection.email}</p>
           </div>
+        )}
+        {isGithub && (
+          <Input
+            label="AI Credits limit per billing period"
+            type="number"
+            min="0"
+            step="any"
+            value={aiCreditLimit}
+            onChange={(event) => setAiCreditLimit(event.target.value)}
+            placeholder="No local limit"
+            error={invalidCreditLimit ? "Enter a non-negative number." : undefined}
+            hint="Blank disables the limit; 0 blocks all requests. Checks GitHub-reported total credits using a short-lived cache (30 seconds by default), and blocks if usage is unavailable. Cached usage, reporting delays, and in-flight requests can exceed this cutoff; it is not a guaranteed spending ceiling. Applies only to this connection’s traffic through 9Router."
+          />
         )}
         <Input
           label="Priority"
@@ -306,7 +327,7 @@ export default function EditConnectionModal({ isOpen, connection, proxyPools, on
         )}
 
         <div className="flex gap-2">
-          <Button onClick={handleSubmit} fullWidth disabled={saving || missingCx}>{saving ? "Saving..." : "Save"}</Button>
+          <Button onClick={handleSubmit} fullWidth disabled={saving || missingCx || invalidCreditLimit}>{saving ? "Saving..." : "Save"}</Button>
           <Button onClick={onClose} variant="ghost" fullWidth>Cancel</Button>
         </div>
       </div>
@@ -332,4 +353,3 @@ EditConnectionModal.propTypes = {
   onSave: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
 };
-
