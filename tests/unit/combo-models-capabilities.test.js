@@ -34,8 +34,21 @@ beforeAll(async () => {
   await db.createCombo({ name: "deepplan", models: ["tierA"] });
 });
 
-afterAll(() => {
-  if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
+afterAll(async () => {
+  if (tempDir) {
+    // The SQLite handle can still be open here; on Windows that locks the
+    // file and rmSync throws EPERM. Close attempt first, then tolerate a
+    // leftover temp dir (OS temp cleanup reclaims it) so cleanup can never
+    // fail the suite on Windows.
+    try {
+      await db?.close?.();
+    } catch { /* no close handle — fall through to rm */ }
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch (err) {
+      if (err?.code !== "EPERM" && err?.code !== "EBUSY") throw err;
+    }
+  }
   if (originalDataDir === undefined) delete process.env.DATA_DIR;
   else process.env.DATA_DIR = originalDataDir;
 });

@@ -7,8 +7,11 @@ import { buildSearchRequest } from "../../open-sse/handlers/search/callers.js";
 // Run the actual probe functions without loading database/proxy runtime modules.
 // Only their external dependencies are replaced; the function bodies are unchanged.
 function loadProbes(fetch) {
-  const validation = readFileSync(new URL("../../src/app/api/providers/validate/route.js", import.meta.url), "utf8");
-  const saved = readFileSync(new URL("../../src/app/api/providers/[id]/test/testUtils.js", import.meta.url), "utf8");
+  // Normalize line endings: Windows checkouts (core.autocrlf) store CRLF,
+  // which would break the "\n"-based slice markers below (indexOf returns -1
+  // and the slice runs to EOF, pulling in `export` statements).
+  const validation = readFileSync(new URL("../../src/app/api/providers/validate/route.js", import.meta.url), "utf8").replace(/\r\n?/g, "\n");
+  const saved = readFileSync(new URL("../../src/app/api/providers/[id]/test/testUtils.js", import.meta.url), "utf8").replace(/\r\n?/g, "\n");
   const probeSource = validation.slice(validation.indexOf("async function probeWebProvider("), validation.indexOf("// Probe a media provider"));
   const savedSource = saved.slice(saved.indexOf("async function testApiKeyConnection("), saved.indexOf("/**\n * Test a single connection"));
   return vm.runInNewContext(`${probeSource}\n${savedSource}\n({probeWebProvider, testApiKeyConnection})`, {
