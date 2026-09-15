@@ -45,12 +45,20 @@ export default function ZCodeToolCard({ tool, isExpanded, onToggle, baseUrl, api
     }
   }, [isExpanded]);
 
-  // Hydrate the model list from the existing AFRouter entry (AFRouter-added models)
+  // Hydrate chips from ALL models currently in the entry (user-added included),
+  // not just AFRouter-marked ones — the card must reflect the real config.
+  // Signature-guarded so a status refresh never clobbers an in-progress
+  // selection, and skipped while the model modal is open.
+  const hydratedSignature = useRef("");
   useEffect(() => {
-    if (status?.zcode?.afrouterModels) {
-      setSelectedModels(status.zcode.afrouterModels);
+    const entryModels = status?.zcode?.models;
+    if (!Array.isArray(entryModels) || modalOpen) return;
+    const signature = [...entryModels].sort().join("|");
+    if (signature !== hydratedSignature.current) {
+      hydratedSignature.current = signature;
+      setSelectedModels(entryModels);
     }
-  }, [status]);
+  }, [status, modalOpen]);
 
   const fetchModelAliases = async () => {
     try {
@@ -149,14 +157,21 @@ export default function ZCodeToolCard({ tool, isExpanded, onToggle, baseUrl, api
   const removeModel = async (model) => {
     try {
       const res = await fetch(`${ENDPOINT}?model=${encodeURIComponent(model)}`, { method: "DELETE" });
-      if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      // Only drop the chip when the server actually removed it — user-added
+      // models are marker-protected and must stay listed.
+      if (res.ok && data.removed > 0) {
         setSelectedModels((prev) => selectedModelsRef.current.filter((m) => m !== model));
-        checkStatus();
       }
+      checkStatus();
     } catch (error) {
       console.log("Error removing model:", error);
     }
   };
+
+  // AFRouter-managed (marker-bearing) models can be removed from the card;
+  // user-added ones are read-only here and are managed inside ZCode.
+  const managedModels = status?.zcode?.afrouterModels || [];
 
   // Snippet mirrors the exact entry shape the route writes (data-model.md),
   // including the zcode.afrouter ownership marker, so remotely-pasted configs
@@ -297,27 +312,32 @@ export default function ZCodeToolCard({ tool, isExpanded, onToggle, baseUrl, api
                   <div className="flex-1 flex flex-col gap-2">
                     <div className="flex flex-wrap gap-1.5 min-h-[28px] px-2 py-1.5 bg-surface rounded border border-border">
                       {selectedModels.length === 0 ? (
-                        <span className="text-xs text-text-muted">No AFRouter models — add one below</span>
+                        <span className="text-xs text-text-muted">No models in the AFRouter entry — add one below</span>
                       ) : (
-                        selectedModels.map((model) => (
-                          <span
-                            key={model}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-black/5 dark:bg-white/5 text-text-muted border border-transparent hover:border-border"
-                            title="AFRouter-managed model"
-                          >
-                            {model}
-                            <button
-                              onClick={() => removeModel(model)}
-                              className="ml-0.5 hover:text-red-500"
+                        selectedModels.map((model) => {
+                          const managed = managedModels.includes(model);
+                          return (
+                            <span
+                              key={model}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border ${managed ? "bg-primary/10 text-primary border-primary/40" : "bg-black/5 dark:bg-white/5 text-text-muted border-transparent"}`}
+                              title={managed ? "AFRouter-managed model" : "Added outside AFRouter — remove it inside ZCode"}
                             >
-                              <span className="material-symbols-outlined text-[12px]">close</span>
-                            </button>
-                          </span>
-                        ))
+                              {model}
+                              {managed && (
+                                <button
+                                  onClick={() => removeModel(model)}
+                                  className="ml-0.5 hover:text-red-500"
+                                >
+                                  <span className="material-symbols-outlined text-[12px]">close</span>
+                                </button>
+                              )}
+                            </span>
+                          );
+                        })
                       )}
                     </div>
                     <button onClick={() => setModalOpen(true)} disabled={!activeProviders?.length} className={`self-start px-2 py-1 rounded border text-xs transition-colors ${activeProviders?.length ? "bg-surface border-border text-text-main hover:border-primary cursor-pointer" : "opacity-50 cursor-not-allowed border-border"}`}>Add Model</button>
-                    <span className="text-xs text-text-muted">Pick the model inside ZCode after applying — AFRouter does not set the active model.</span>
+                    <span className="text-xs text-text-muted">Highlighted models are AFRouter-managed (× to remove); dimmed ones were added outside AFRouter and are left untouched. Pick the active model inside ZCode — AFRouter does not set it.</span>
                   </div>
                 </div>
 

@@ -60,6 +60,8 @@ Response `200` (never 500 for missing/corrupt config — SC-004):
 
 Not-installed: `{ "installed": false, "zcode": null, "message": "ZCode is not installed" }`.
 
+Card contract: model chips render from `models` (everything actually in the entry, user-added included); the remove affordance renders only for ids present in `afrouterModels`, and the client must drop a chip only when the DELETE response reports `removed > 0`.
+
 ## DELETE /api/cli-tools/zcode-settings — Reset
 
 Query: `?model=<id>` for single-model removal; absent = remove all `afrouter`-marked models.

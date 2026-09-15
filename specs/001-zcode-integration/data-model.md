@@ -71,7 +71,7 @@ Top-level JSON object. Only the `provider` map is touched; every other key is pr
 }
 ```
 
-Drives the card's Connected / Not configured / Other state (FR-012) via `matchKnownEndpoint`.
+Drives the card's Connected / Not configured / Other state (FR-012) via `matchKnownEndpoint`. The card renders model chips from `models` (the entry's real contents — user-added included) and gates per-model removal on `afrouterModels`; hydration is signature-guarded and skipped while the model modal is open so a status refresh never clobbers an in-progress selection.
 
 ## State transitions
 
