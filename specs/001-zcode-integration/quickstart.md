@@ -17,14 +17,14 @@ End-to-end validation that the ZCode card connects ZCode to AFRouter. Run from r
 3. Verify on disk:
 
    ```sh
-   node -e "const c=require(require('os').homedir()+'/.zcode/v2/config.json');const e=Object.values(c.provider).find(v=>v.name==='9Router'&&v.source==='custom');console.log(e.options.baseURL, Object.keys(e.models))"
+   node -e "const c=require(require('os').homedir()+'/.zcode/v2/config.json');const e=Object.values(c.provider).find(v=>v.name==='AFRouter'&&v.source==='custom');console.log(e.options.baseURL, Object.keys(e.models))"
    ```
 
    Expect the applied baseURL and model IDs. Confirm a timestamped `config.json.bak-*` sibling was created. Expect per-model shape per [data-model.md](data-model.md) — e.g. reasoning block present iff catalog `reasoning` is true; `zcode.afrouter: true` on written models.
 
 ## Scenario 2 — User data survives merge & reset (SC-002, FR-004/008)
 
-1. Hand-add a model under the `9Router` entry's `models` (any key, minimal shape, no `zcode.afrouter` marker).
+1. Hand-add a model under the `AFRouter` entry's `models` (any key, minimal shape, no `zcode.afrouter` marker).
 2. Apply a different model from the card. Verify the hand-added model is still present byte-identical.
 3. Click **Reset**. Verify: AFRouter-marked models gone, hand-added model still present, entry retained (`entryRemoved: false`). Delete the hand-added model by hand afterwards.
 
@@ -37,11 +37,11 @@ End-to-end validation that the ZCode card connects ZCode to AFRouter. Run from r
 ## Scenario 4 — Manual Config & remote machine (US3)
 
 1. Rename the local config away (simulates ZCode absent). Card shows guidance + **Manual Config**.
-2. Copy the snippet into a real `config.json` on another machine (or paste locally after restoring), launch ZCode, open the model picker → the 9Router provider lists the snippet's models.
+2. Copy the snippet into a real `config.json` on another machine (or paste locally after restoring), launch ZCode, open the model picker → the AFRouter provider lists the snippet's models.
 
 ## Scenario 5 — ZCode round-trip (D2 risk check)
 
-1. With models applied, relaunch ZCode and open its model picker: the 9Router provider lists the applied models.
+1. With models applied, relaunch ZCode and open its model picker: the AFRouter provider lists the applied models.
 2. Change a setting inside ZCode that rewrites its config, then re-check `config.json`: the `zcode.afrouter` markers on AFRouter-written models must survive (if ZCode strips unknown `zcode` keys, D2's fallback plan activates — report it).
 
 ## Regression & lint gate (constitution V)

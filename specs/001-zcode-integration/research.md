@@ -17,7 +17,7 @@ All unknowns were resolved by direct observation of a live ZCode config and AFRo
 
 ## D2: AFRouter-ownership tracking for selective DELETE (FR-008)
 
-**Decision**: In-config marker — every model AFRouter writes gets `zcode: { modalitiesConfigured: true, afrouter: true }`. DELETE removes only entries carrying `afrouter: true`; when none remain, the whole `9Router` entry is removed. Pre-existing (user-added) models never carry the marker and are never removed. The Manual Config snippet includes the marker so remotely-configured setups get identical ownership semantics.
+**Decision**: In-config marker — every model AFRouter writes gets `zcode: { modalitiesConfigured: true, afrouter: true }`. DELETE removes only entries carrying `afrouter: true`; when none remain, the whole `AFRouter` entry is removed. Pre-existing (user-added) models never carry the marker and are never removed. The Manual Config snippet includes the marker so remotely-configured setups get identical ownership semantics.
 
 **Rationale**: Keeps AFRouter stateless (constitution IV spirit: no new AFRouter-side persistence for what is config-file state), and the marker travels inside the config file — correct behavior even for configs copied across machines. Safe extensibility is observed: real configs show the `zcode` block carrying varied extra keys (`modalitiesConfigured`, `modified`, `priority`), and ZCode tolerates entries with/without each.
 
@@ -38,7 +38,7 @@ All unknowns were resolved by direct observation of a live ZCode config and AFRo
 
 ## D4: Provider entry lookup + creation (FR-003)
 
-**Decision**: Scan `provider` map values for `name === "9Router"` and `source === "custom"` (builtin `builtin:*` entries with the same name are ignored — they're ZCode-shipped skeletons, not ours). If none, create under a fresh UUID (`crypto.randomUUID()`). If multiple, pick the first match and report the ambiguity in the response payload.
+**Decision**: Scan `provider` map values for `name === "AFRouter"` and `source === "custom"` (builtin `builtin:*` entries with the same name are ignored — they're ZCode-shipped skeletons, not ours). If none, create under a fresh UUID (`crypto.randomUUID()`). If multiple, pick the first match and report the ambiguity in the response payload.
 
 **Rationale**: Observed config shows name-collision is real (`Z.ai - Coding Plan` appears under two keys); matching on `name` + `source` disambiguates ours (always created with `source: "custom"`) from any future builtin lookalike. UUID creation mirrors the other custom entries (`NVIDIA NIM`, `TokenRouter`, …).
 

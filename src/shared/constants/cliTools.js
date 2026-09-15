@@ -413,11 +413,11 @@ amp --model "{{model}}"
     notes: [
       {
         type: "info",
-        text: "AFRouter writes a 9Router provider entry into ~/.zcode/v2/config.json so ZCode's model picker offers AFRouter models.",
+        text: "AFRouter writes an AFRouter provider entry into ~/.zcode/v2/config.json so ZCode's model picker offers AFRouter models.",
       },
       {
         type: "info",
-        text: "Reset removes only models AFRouter added — models you configured by hand under the 9Router entry are kept.",
+        text: "Reset removes only models AFRouter added — models you configured by hand under the AFRouter entry are kept.",
       },
       {
         type: "warning",

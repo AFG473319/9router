@@ -6,7 +6,7 @@
 
 ## Summary
 
-Add a ZCode card to the AFRouter dashboard CLI-tools page that detects a local ZCode installation via `~/.zcode/v2/config.json`, and on Apply merges a `9Router` provider entry (`kind: "openai-compatible"`) pointing at AFRouter's `/v1` endpoint, with model specs sourced from AFRouter's live `/v1/models` catalog. Reset removes only AFRouter-added models. Mirrors the Hermes/OpenCode card + settings-route pattern; no engine (`open-sse/`) changes — all app-side (`src/`) work.
+Add a ZCode card to the AFRouter dashboard CLI-tools page that detects a local ZCode installation via `~/.zcode/v2/config.json`, and on Apply merges a `AFRouter` provider entry (`kind: "openai-compatible"`) pointing at AFRouter's `/v1` endpoint, with model specs sourced from AFRouter's live `/v1/models` catalog. Reset removes only AFRouter-added models. Mirrors the Hermes/OpenCode card + settings-route pattern; no engine (`open-sse/`) changes — all app-side (`src/`) work.
 
 ## Technical Context
 

@@ -3,7 +3,7 @@
  *
  * Covers the destructive config-write paths against a temp "home" dir:
  *  - GET never 500s on missing/corrupt config (SC-004)
- *  - POST creates the 9Router entry (UUID key) and stamps the afrouter
+ *  - POST creates the AFRouter entry (UUID key) and stamps the afrouter
  *    ownership marker on written models (research D2)
  *  - POST refresh preserves user-tuned fields (variants/name/priority, FR-005)
  *  - DELETE is marker-scoped: user-added models survive (FR-008)
@@ -54,7 +54,7 @@ function readConfigFile() {
 }
 
 function findEntry(config) {
-  return Object.values(config.provider).find((v) => v.name === "9Router" && v.source === "custom");
+  return Object.values(config.provider).find((v) => v.name === "AFRouter" && v.source === "custom");
 }
 
 function post(body) {
@@ -90,11 +90,11 @@ describe("GET /api/cli-tools/zcode-settings", () => {
     expect(res.body.zcode).toBeNull();
   });
 
-  it("reports the 9Router entry with afrouterModels separated", async () => {
+  it("reports the AFRouter entry with afrouterModels separated", async () => {
     writeFixture({
       provider: {
         "user-entry": {
-          name: "9Router",
+          name: "AFRouter",
           source: "custom",
           kind: "openai-compatible",
           options: { baseURL: "http://localhost:20128/v1" },
@@ -134,7 +134,7 @@ describe("POST /api/cli-tools/zcode-settings", () => {
     const cfg = readConfigFile();
     const keys = Object.keys(cfg.provider);
     expect(keys).toContain("builtin:zai");
-    const entryKey = keys.find((k) => cfg.provider[k].name === "9Router" && cfg.provider[k].source === "custom");
+    const entryKey = keys.find((k) => cfg.provider[k].name === "AFRouter" && cfg.provider[k].source === "custom");
     expect(entryKey).toMatch(/^[0-9a-f-]{36}$/);
     const entry = cfg.provider[entryKey];
     expect(entry.kind).toBe("openai-compatible");
@@ -157,7 +157,7 @@ describe("POST /api/cli-tools/zcode-settings", () => {
     writeFixture({
       provider: {
         existing: {
-          name: "9Router",
+          name: "AFRouter",
           source: "custom",
           kind: "openai-compatible",
           options: { apiKey: "old", baseURL: "http://old:1/v1" },
@@ -191,7 +191,7 @@ describe("POST /api/cli-tools/zcode-settings", () => {
     writeFixture({
       provider: {
         existing: {
-          name: "9Router",
+          name: "AFRouter",
           source: "custom",
           kind: "openai-compatible",
           options: { apiKey: "k", baseURL: "http://x/v1" },
@@ -217,7 +217,7 @@ describe("DELETE /api/cli-tools/zcode-settings", () => {
     return {
       provider: {
         e1: {
-          name: "9Router",
+          name: "AFRouter",
           source: "custom",
           kind: "openai-compatible",
           options: {},
@@ -256,7 +256,7 @@ describe("DELETE /api/cli-tools/zcode-settings", () => {
     expect(findEntry(readConfigFile())).toBeUndefined();
   });
 
-  it("is a no-op success when there is no 9Router entry", async () => {
+  it("is a no-op success when there is no AFRouter entry", async () => {
     writeFixture({ provider: {} });
     const res = await del(null);
     expect(res.status).toBe(200);

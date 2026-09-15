@@ -83,4 +83,4 @@ Tool id `zcode` must appear in exactly four places, matching existing tools:
 
 ## ZCode config file contract (external)
 
-Documented normatively in [data-model.md](../data-model.md): entry located by `name === "9Router"` + `source === "custom"`; writes are backup → temp → atomic rename; only `~/.zcode/v2/config.json` is ever touched (`setting.json`, `~/.zcode/cli/config.json` are read/write-forbidden, FR-011).
+Documented normatively in [data-model.md](../data-model.md): entry located by `name === "AFRouter"` + `source === "custom"`; writes are backup → temp → atomic rename; only `~/.zcode/v2/config.json` is ever touched (`setting.json`, `~/.zcode/cli/config.json` are read/write-forbidden, FR-011).

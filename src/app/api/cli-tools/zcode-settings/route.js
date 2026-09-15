@@ -7,7 +7,7 @@ import os from "os";
 import crypto from "crypto";
 import { getCapabilitiesForModel } from "open-sse/providers/capabilities.js";
 
-const PROVIDER_NAME = "9Router";
+const PROVIDER_NAME = "AFRouter";
 
 // Conservative fallback for IDs that resolve in neither the live catalog nor
 // the static registry (FR-006) — written with specs flagged "unverified".
@@ -254,7 +254,7 @@ export async function DELETE(request) {
     const config = result.data;
     const entryKey = findEntryKey(config);
     if (!entryKey) {
-      return NextResponse.json({ success: true, message: "No 9Router entry in ZCode config", removed: 0, entryRemoved: false });
+      return NextResponse.json({ success: true, message: "No AFRouter entry in ZCode config", removed: 0, entryRemoved: false });
     }
 
     const entry = config.provider[entryKey];
@@ -281,7 +281,7 @@ export async function DELETE(request) {
     return NextResponse.json({
       success: true,
       message: entryRemoved
-        ? "9Router entry removed from ZCode"
+        ? "AFRouter entry removed from ZCode"
         : `Removed ${removed} AFRouter model${removed === 1 ? "" : "s"} from ZCode`,
       removed,
       entryRemoved,

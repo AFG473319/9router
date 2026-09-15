@@ -20,7 +20,7 @@ Top-level JSON object. Only the `provider` map is touched; every other key is pr
 
 ```json
 {
-  "name": "9Router",
+  "name": "AFRouter",
   "kind": "openai-compatible",
   "options": { "apiKey": "<afrouter-key>", "baseURL": "http://localhost:20128/v1" },
   "source": "custom",
@@ -28,7 +28,7 @@ Top-level JSON object. Only the `provider` map is touched; every other key is pr
 }
 ```
 
-- Lookup key: `name === "9Router"` **and** `source === "custom"` (D4). Creation key: fresh UUID.
+- Lookup key: `name === "AFRouter"` **and** `source === "custom"` (D4). Creation key: fresh UUID.
 - `kind` is always `"openai-compatible"` for our entry. `options.baseURL` normalized to end with `/v1`.
 - `models` merge semantics (FR-004): applied models are merged in; pre-existing sibling keys are never dropped or reordered.
 
@@ -78,7 +78,7 @@ Drives the card's Connected / Not configured / Other state (FR-012) via `matchKn
 | From | Trigger | To |
 |---|---|---|
 | no config file | GET | `installed: false` (card shows install guidance + Manual Config) |
-| config file, no 9Router entry | POST | entry created (fresh UUID), models merged |
+| config file, no AFRouter entry | POST | entry created (fresh UUID), models merged |
 | entry exists, apply subset | POST | models merged; user entries untouched; `afrouter` marker set on written models |
 | entry exists, reset | DELETE | `afrouter`-marked models removed; entry removed only when zero models remain |
 | corrupt config | GET/POST | GET → safe empty status (never 500); POST → refuse + report; backup untouched |

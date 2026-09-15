@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Add ZCode support to the CLI-tools page so AFRouter can automatically connect ZCode to itself, something like Hermes/OpenCode — detect a local ZCode installation, read its model config, and write/merge a 9Router provider entry pointing at AFRouter."
+**Input**: User description: "Add ZCode support to the CLI-tools page so AFRouter can automatically connect ZCode to itself, something like Hermes/OpenCode — detect a local ZCode installation, read its model config, and write/merge a AFRouter provider entry pointing at AFRouter."
 
 ## Clarifications
 
@@ -16,7 +16,7 @@
 - Q: When the user clicks Apply, should the write silently merge or show a preview diff first? → A: Silent merge on Apply, matching Hermes/OpenCode behavior; timestamped backup plus atomic write covers safety.
 - Q: If ZCode is running while Apply writes its config, what should happen? → A: Atomic write plus backup, and tell the user to restart ZCode if running.
 - Q: Should the card offer single-model apply, multi-model management, or both? → A: Multi-model list management (OpenCode style).
-- Q: Should Reset remove the whole 9Router entry or only AFRouter-added models? → A: Remove only AFRouter-added models, keep user-added ones.
+- Q: Should Reset remove the whole AFRouter entry or only AFRouter-added models? → A: Remove only AFRouter-added models, keep user-added ones.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -26,13 +26,13 @@ A user running AFRouter and ZCode on the same machine opens the dashboard CLI-to
 
 **Why this priority**: This is the entire value of the feature — one-click routing of ZCode traffic through AFRouter. Everything else is refinement.
 
-**Independent Test**: With ZCode installed locally, expand the ZCode card, select one model, and click Apply. Then parse `~/.zcode/v2/config.json` and confirm a provider entry named `9Router` exists with the chosen model and the AFRouter base URL. Click Reset and confirm the entry is removed.
+**Independent Test**: With ZCode installed locally, expand the ZCode card, select one model, and click Apply. Then parse `~/.zcode/v2/config.json` and confirm a provider entry named `AFRouter` exists with the chosen model and the AFRouter base URL. Click Reset and confirm the entry is removed.
 
 **Acceptance Scenarios**:
 
-1. **Given** ZCode is installed (its config file exists) and AFRouter has an active provider, **When** the user applies one model with the local endpoint, **Then** `config.json` contains a `9Router` entry with `kind: "openai-compatible"`, the AFRouter `/v1` base URL, and the model key present in its `models` map.
-2. **Given** the `9Router` entry already points at the selected endpoint, **When** the card status is evaluated, **Then** the card shows the "Connected" state.
-3. **Given** the user clicks Reset, **When** the reset completes, **Then** the `9Router` entry no longer routes to AFRouter and the card leaves the "Connected" state.
+1. **Given** ZCode is installed (its config file exists) and AFRouter has an active provider, **When** the user applies one model with the local endpoint, **Then** `config.json` contains a `AFRouter` entry with `kind: "openai-compatible"`, the AFRouter `/v1` base URL, and the model key present in its `models` map.
+2. **Given** the `AFRouter` entry already points at the selected endpoint, **When** the card status is evaluated, **Then** the card shows the "Connected" state.
+3. **Given** the user clicks Reset, **When** the reset completes, **Then** the `AFRouter` entry no longer routes to AFRouter and the card leaves the "Connected" state.
 
 ---
 
@@ -46,7 +46,7 @@ A user adds several AFRouter models to ZCode at once, refreshes their specs from
 
 **Acceptance Scenarios**:
 
-1. **Given** an existing `9Router` entry with user models, **When** the user applies additional models, **Then** the new models are merged into the existing `models` map and pre-existing model entries are preserved byte-for-byte.
+1. **Given** an existing `AFRouter` entry with user models, **When** the user applies additional models, **Then** the new models are merged into the existing `models` map and pre-existing model entries are preserved byte-for-byte.
 2. **Given** AFRouter's `/v1/models` catalog reports capabilities for a model, **When** the model is written to ZCode config, **Then** its `limit`, `modalities`, and `reasoning` blocks match the catalog (reasoning block present only when the catalog reports reasoning support).
 
 ---
@@ -71,7 +71,7 @@ A user whose ZCode runs on a different machine (or who prefers to configure by h
 - How does the system handle an unparseable (corrupt) `config.json`? The status endpoint returns a safe "no config" result, never a 500 that the UI misreads as "installed".
 - What happens when ZCode is running and holding the config file? Writes use an atomic write (temp file + rename) plus a timestamped backup so a concurrent ZCode write cannot leave a half-written file; on success the UI advises the user to restart ZCode if it is running, since ZCode loads config at session start.
 - How are non-local endpoints handled (tunnel/tailscale URLs)? Endpoint matching reuses the existing `matchKnownEndpoint` helper so "Connected" vs "Other" states stay consistent with other cards.
-- What happens when no `9Router` entry exists yet? POST creates one under a fresh UUID key; lookup is always by `"name": "9Router"`, never by a hardcoded key.
+- What happens when no `AFRouter` entry exists yet? POST creates one under a fresh UUID key; lookup is always by `"name": "AFRouter"`, never by a hardcoded key.
 - Active-model selection: ZCode tracks the selected provider/model in `setting.json` (`modelProviderFamilySelectedKeys`), not in `config.json`. AFRouter writes provider + models only and never touches `setting.json`; the user picks the model inside ZCode.
 
 ## Requirements *(mandatory)*
@@ -80,20 +80,20 @@ A user whose ZCode runs on a different machine (or who prefers to configure by h
 
 - **FR-001**: System MUST detect a local ZCode installation via `config.json` existence (no `zcode` binary exists on PATH, so binary probing is a best-effort fallback only).
 - **FR-002**: System MUST read and parse `~/.zcode/v2/config.json`, resolving paths via `os.homedir()` for Windows/macOS/Linux compatibility.
-- **FR-003**: System MUST locate the 9Router provider entry by `"name": "9Router"` within the top-level `provider` map (builtin entries use `builtin:<slug>` keys, custom entries use UUID keys — neither may be hardcoded).
+- **FR-003**: System MUST locate the AFRouter provider entry by `"name": "AFRouter"` within the top-level `provider` map (builtin entries use `builtin:<slug>` keys, custom entries use UUID keys — neither may be hardcoded).
 - **FR-004**: System MUST merge applied models into the existing `models` map, preserving all pre-existing model entries.
 - **FR-005**: System MUST build each model entry in the observed ZCode shape: exact API model ID as key, `limit.context` from catalog `contextWindow`, `limit.output` from catalog `maxOutput`, `modalities.input` always containing `text` plus `image`/`video`/`audio` exactly when the catalog reports `vision`/`videoInput`/`audioInput` (the catalog `pdf` flag has no ZCode equivalent and MUST be ignored), `modalities.output` always `["text"]`, and `zcode: { modalitiesConfigured: true }`. When the catalog reports reasoning support the entry MUST include a `reasoning` block defaulting to `{ enabled: true, variants: ["low", "high", "max"], defaultVariant: "max" }` (the dominant observed convention — the catalog exposes no variant list, so variants MUST NOT be derived from `thinkingFormat` or related fields); when it does not, the block MUST be omitted. Merge and refresh MUST preserve a pre-existing entry's `variants`, `defaultVariant`, `name`, and `priority` and MUST never overwrite them.
 - **FR-006**: System MUST resolve model specs from AFRouter's live `GET /v1/models` catalog entry (its `capabilities` object plus top-level `context_length` / `max_completion_tokens`) and MUST NOT invent context/output limits or capability flags. Model IDs that resolve only as combos or source-aliases (e.g. `oc/…` IDs listed only as `opencode/…`) and have no direct catalog entry MUST be written with conservative fallback specs (context 200000, output 32000, text-only input) and MUST be flagged to the user as unverified rather than silently given invented capabilities.
 - **FR-007**: System MUST back up `config.json` (timestamped copy next to the original) before every write and perform atomic writes.
 - **FR-008**: System MUST expose GET (status: installed / hasAFRouter / models / baseURL), POST (merge-write entry), and DELETE (remove a single model, or the whole entry only when no models remain) under `/api/cli-tools/zcode-settings`, following the Hermes/OpenCode route shape. The route MUST track which model keys AFRouter added so DELETE removes only those and preserves user-added models under the same entry.
 - **FR-009**: System MUST register the tool in `CLI_TOOLS` (`configType: "custom"`), the `all-statuses` batch route, the components index, and the `ToolDetailClient` card switch.
-- **FR-010**: System MUST provide a Manual Config modal with a copy-paste JSON snippet for the `9Router` provider entry.
+- **FR-010**: System MUST provide a Manual Config modal with a copy-paste JSON snippet for the `AFRouter` provider entry.
 - **FR-011**: System MUST NOT read or write `~/.zcode/v2/setting.json` or `~/.zcode/cli/config.json` (active-model selection and plugin config are ZCode-owned).
 - **FR-012**: System MUST report status as Connected / Not configured / Other using the shared endpoint-matching helper, consistent with existing cards.
 
 ### Key Entities
 
-- **ZCodeProviderEntry**: The `9Router` object inside ZCode's `provider` map — `name`, `kind: "openai-compatible"`, `options` (`apiKey`, `baseURL`), `source: "custom"`, and a `models` map.
+- **ZCodeProviderEntry**: The `AFRouter` object inside ZCode's `provider` map — `name`, `kind: "openai-compatible"`, `options` (`apiKey`, `baseURL`), `source: "custom"`, and a `models` map.
 - **ZCodeModelEntry**: One model under the entry, keyed by exact API model ID, carrying `limit`, `modalities`, optional `reasoning`, and the `zcode` marker block.
 - **AFRouterModelCatalog**: The live `GET /v1/models` response — the authoritative source for every spec value written into a model entry.
 

@@ -45,7 +45,7 @@ export default function ZCodeToolCard({ tool, isExpanded, onToggle, baseUrl, api
     }
   }, [isExpanded]);
 
-  // Hydrate the model list from the existing 9Router entry (AFRouter-added models)
+  // Hydrate the model list from the existing AFRouter entry (AFRouter-added models)
   useEffect(() => {
     if (status?.zcode?.afrouterModels) {
       setSelectedModels(status.zcode.afrouterModels);
@@ -182,7 +182,7 @@ export default function ZCodeToolCard({ tool, isExpanded, onToggle, baseUrl, api
       content: JSON.stringify({
         provider: {
           "<uuid>": {
-            name: "9Router",
+            name: "AFRouter",
             kind: "openai-compatible",
             options: { apiKey: keyToUse, baseURL: getEffectiveBaseUrl() },
             source: "custom",
